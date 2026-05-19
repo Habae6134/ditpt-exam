@@ -20,309 +20,590 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
     }
 
-    h1 {
-      font-size: 1.6rem;
-      color: #1a365d;
-      margin-bottom: 20px;
-      text-align: center;
-    }
+    .screen { display: none; width: 100%; max-width: 480px; padding: 20px; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
 
+    /* ── 카테고리 선택 ── */
+    .category-header { text-align: center; margin: 40px 0 32px; }
+    .category-header h1 { font-size: 1.7rem; color: #1a365d; margin-bottom: 8px; }
+    .category-header p { font-size: 0.95rem; color: #718096; }
+
+    .category-list { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+
+    .category-btn {
+      width: 100%; padding: 26px 24px; border: none; border-radius: 18px;
+      cursor: pointer; text-align: left; display: flex; align-items: center; gap: 18px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .category-btn:active { transform: scale(0.97); }
+    .category-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
+    .cat-1 { background: linear-gradient(135deg, #667eea, #5a67d8); }
+    .cat-2 { background: linear-gradient(135deg, #48bb78, #38a169); }
+    .cat-3 { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+    .category-btn .cat-icon { font-size: 2.2rem; flex-shrink: 0; }
+    .category-btn .cat-text { color: white; }
+    .category-btn .cat-text strong { display: block; font-size: 1.15rem; margin-bottom: 3px; }
+    .category-btn .cat-text span { font-size: 0.8rem; opacity: 0.85; }
+
+    /* ── 공통 카드 ── */
     .card {
-      background: white;
-      border-radius: 16px;
+      background: white; border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      padding: 24px;
-      width: 100%;
-      max-width: 480px;
-      margin-bottom: 16px;
+      padding: 24px; width: 100%; margin-bottom: 16px;
     }
+    .card h2 { font-size: 1rem; color: #4a5568; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
 
-    .card h2 {
-      font-size: 1rem;
-      color: #4a5568;
-      margin-bottom: 14px;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 8px;
+    /* ── 뽑기 화면 헤더 ── */
+    .draw-header { width: 100%; display: flex; align-items: center; gap: 10px; margin: 20px 0 16px; }
+    .back-btn {
+      background: white; border: none; border-radius: 10px; padding: 8px 12px;
+      font-size: 0.9rem; color: #4a5568; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;
     }
+    .back-btn:hover { background: #f7fafc; }
+    .draw-header-title { flex: 1; }
+    .draw-header-title h1 { font-size: 1rem; color: #718096; font-weight: normal; }
+    .draw-header-title h2 { font-size: 1.2rem; color: #1a365d; font-weight: bold; }
 
-    .settings-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    label {
-      font-size: 0.8rem;
-      color: #718096;
-      display: block;
-      margin-bottom: 4px;
-    }
-
+    /* ── 설정 ── */
+    .settings-grid { display: grid; gap: 10px; margin-bottom: 14px; }
+    label { font-size: 0.8rem; color: #718096; display: block; margin-bottom: 4px; }
     input[type="number"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 1rem;
-      text-align: center;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;
+      font-size: 1rem; text-align: center; outline: none; transition: border-color 0.2s;
     }
-
     input:focus { border-color: #4299e1; }
 
-    .student-label {
-      text-align: center;
-      font-size: 1.1rem;
-      color: #2d3748;
-      margin-bottom: 16px;
-      font-weight: bold;
+    /* ── 동작 목록 카드 (텍스트 모드) ── */
+    .item-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .item-add-row input {
+      flex: 1; text-align: left; padding-left: 12px; font-size: 0.95rem;
     }
-
-    .slots {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 20px;
+    .add-btn {
+      padding: 10px 16px; background: #3182ce; color: white; border: none;
+      border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; white-space: nowrap;
     }
+    .add-btn:hover { background: #2b6cb0; }
 
+    .item-list { max-height: 200px; overflow-y: auto; }
+    .item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 4px; border-bottom: 1px solid #f0f0f0; gap: 8px;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-index { font-size: 0.75rem; color: #a0aec0; width: 20px; flex-shrink: 0; }
+    .item-name { flex: 1; font-size: 0.95rem; color: #2d3748; }
+    .del-btn {
+      background: none; border: none; color: #fc8181; cursor: pointer;
+      font-size: 1rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+    }
+    .del-btn:hover { background: #fff5f5; }
+    .item-empty { color: #a0aec0; font-size: 0.9rem; text-align: center; padding: 16px 0; }
+    .item-count { font-size: 0.78rem; color: #a0aec0; margin-top: 8px; text-align: right; }
+
+    .list-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+      border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;
+    }
+    .list-card-header:hover { opacity: 0.75; }
+    #listToggleIcon { font-size: 0.75rem; color: #a0aec0; }
+
+    /* ── 번호 슬롯 (숫자 모드) ── */
+    .student-label { text-align: center; font-size: 1.1rem; color: #2d3748; margin-bottom: 16px; font-weight: bold; }
+    .slots { display: flex; justify-content: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
     .slot {
-      width: 80px;
-      height: 80px;
-      border-radius: 14px;
-      border: 3px dashed #cbd5e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      font-weight: bold;
-      color: #a0aec0;
-      background: #f7fafc;
-      transition: all 0.3s;
-      position: relative;
+      width: 80px; height: 80px; border-radius: 14px; border: 3px dashed #cbd5e0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: bold; color: #a0aec0;
+      background: #f7fafc; transition: all 0.3s; position: relative;
     }
-
     .slot.filled {
-      border-style: solid;
-      border-color: #4299e1;
-      background: #ebf8ff;
-      color: #2b6cb0;
-      animation: popIn 0.3s ease;
+      border-style: solid; border-color: #4299e1;
+      background: #ebf8ff; color: #2b6cb0; animation: popIn 0.3s ease;
     }
+    .slot-num { position: absolute; top: 4px; left: 8px; font-size: 0.6rem; color: #90cdf4; }
+
+    /* ── 텍스트 결과 슬롯 ── */
+    .text-slots { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .text-slot {
+      width: 100%; padding: 14px 16px; border-radius: 12px; border: 3px dashed #cbd5e0;
+      display: flex; align-items: center; gap: 12px;
+      background: #f7fafc; transition: all 0.3s;
+    }
+    .text-slot.filled {
+      border-style: solid; border-color: #4299e1;
+      background: #ebf8ff; animation: popIn 0.3s ease;
+    }
+    .text-slot-num { font-size: 0.75rem; color: #90cdf4; font-weight: bold; width: 18px; flex-shrink: 0; }
+    .text-slot-value { font-size: 1.05rem; font-weight: bold; color: #2b6cb0; }
+    .text-slot-placeholder { font-size: 1rem; color: #cbd5e0; }
 
     @keyframes popIn {
       0% { transform: scale(0.6); opacity: 0; }
-      70% { transform: scale(1.15); }
+      70% { transform: scale(1.05); }
       100% { transform: scale(1); opacity: 1; }
     }
 
-    .slot-num {
-      position: absolute;
-      top: 4px;
-      left: 8px;
-      font-size: 0.6rem;
-      color: #90cdf4;
-    }
-
+    /* ── 버튼 ── */
     .draw-btn {
-      width: 100%;
-      padding: 18px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 1px;
+      width: 100%; padding: 18px; font-size: 1.2rem; font-weight: bold;
+      border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
     }
-
     .draw-btn.active {
       background: linear-gradient(135deg, #3182ce, #2b6cb0);
-      color: white;
-      box-shadow: 0 4px 14px rgba(49,130,206,0.4);
+      color: white; box-shadow: 0 4px 14px rgba(49,130,206,0.4);
     }
-
-    .draw-btn.active:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(49,130,206,0.45); }
+    .draw-btn.active:hover { transform: translateY(-2px); }
     .draw-btn.active:active { transform: translateY(0); }
-
-    .draw-btn.disabled {
-      background: #e2e8f0;
-      color: #a0aec0;
-      cursor: not-allowed;
-    }
+    .draw-btn.disabled { background: #e2e8f0; color: #a0aec0; cursor: not-allowed; }
 
     .next-btn {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      font-size: 1rem;
-      font-weight: bold;
-      border: 2px solid #38a169;
-      border-radius: 12px;
-      background: white;
-      color: #38a169;
-      cursor: pointer;
-      transition: all 0.2s;
+      width: 100%; padding: 14px; margin-top: 10px; font-size: 1rem; font-weight: bold;
+      border: 2px solid #38a169; border-radius: 12px; background: white;
+      color: #38a169; cursor: pointer; transition: all 0.2s;
     }
-
     .next-btn:hover { background: #f0fff4; }
 
-    .history-card .card-body {
-      max-height: 260px;
-      overflow-y: auto;
-    }
-
-    .history-row {
-      display: flex;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #f0f0f0;
-      gap: 10px;
-      font-size: 0.95rem;
-    }
-
-    .history-row:last-child { border-bottom: none; }
-
-    .student-tag {
-      background: #ebf8ff;
-      color: #2b6cb0;
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
-
-    .history-nums {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .num-badge {
-      background: #4299e1;
-      color: white;
-      border-radius: 8px;
-      padding: 2px 10px;
-      font-weight: bold;
-      font-size: 0.9rem;
-    }
-
     .reset-btn {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 0.85rem;
-      border: 1px solid #fc8181;
-      border-radius: 8px;
-      background: white;
-      color: #e53e3e;
-      cursor: pointer;
-      transition: all 0.2s;
+      width: 100%; padding: 10px; margin-top: 10px; font-size: 0.85rem;
+      border: 1px solid #fc8181; border-radius: 8px; background: white;
+      color: #e53e3e; cursor: pointer; transition: all 0.2s;
     }
-
     .reset-btn:hover { background: #fff5f5; }
 
-    .notice {
-      font-size: 0.78rem;
-      color: #a0aec0;
-      text-align: center;
-      margin-top: 6px;
+    .notice { font-size: 0.78rem; color: #a0aec0; text-align: center; margin-top: 6px; }
+
+    /* ── 기록 ── */
+    .history-card .card-body { max-height: 260px; overflow-y: auto; }
+    .history-row { display: flex; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; }
+    .history-row:last-child { border-bottom: none; }
+    .student-tag {
+      background: #ebf8ff; color: #2b6cb0; border-radius: 6px;
+      padding: 2px 8px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; margin-top: 2px;
     }
+    .history-picks { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pick-badge {
+      background: #4299e1; color: white; border-radius: 8px;
+      padding: 2px 10px; font-weight: bold; font-size: 0.85rem;
+    }
+
+    /* ── 일괄입력 모달 ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 16px; padding: 24px;
+      width: 100%; max-width: 440px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    }
+    .modal h3 { font-size: 1rem; color: #2d3748; margin-bottom: 6px; }
+    .modal p { font-size: 0.8rem; color: #718096; margin-bottom: 10px; }
+    .modal textarea {
+      width: 100%; height: 180px; border: 2px solid #e2e8f0; border-radius: 8px;
+      padding: 10px 12px; font-size: 0.9rem; resize: none; outline: none;
+      font-family: inherit;
+    }
+    .modal textarea:focus { border-color: #4299e1; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-btns button { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 0.95rem; font-weight: bold; }
+    .btn-confirm { background: #3182ce; color: white; }
+    .btn-confirm:hover { background: #2b6cb0; }
+    .btn-cancel { background: #e2e8f0; color: #4a5568; }
+    .btn-cancel:hover { background: #cbd5e0; }
+
+    .list-action-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .action-btn {
+      padding: 7px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0;
+      background: white; color: #4a5568; font-size: 0.8rem; cursor: pointer;
+    }
+    .action-btn:hover { background: #f7fafc; border-color: #cbd5e0; }
+    .action-btn.danger { border-color: #fc8181; color: #e53e3e; }
+    .action-btn.danger:hover { background: #fff5f5; }
 
     @media (max-width: 400px) {
       .slot { width: 65px; height: 65px; font-size: 1.3rem; }
-      .settings-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     }
   </style>
 </head>
 <body>
 
-<h1>🎓 실기시험 제비뽑기</h1>
-
-<!-- 설정 카드 -->
-<div class="card">
-  <h2>⚙️ 설정</h2>
-  <div class="settings-grid">
-    <div>
-      <label>문제 시작번호</label>
-      <input type="number" id="rangeMin" value="1" min="1" />
-    </div>
-    <div>
-      <label>문제 끝번호</label>
-      <input type="number" id="rangeMax" value="30" min="1" />
-    </div>
-    <div>
-      <label>뽑기 수</label>
-      <input type="number" id="drawCount" value="3" min="1" max="10" />
-    </div>
+<!-- ── 화면 1: 카테고리 선택 ── -->
+<div class="screen active" id="screenCategory">
+  <div class="category-header">
+    <h1>🎓 실기시험 제비뽑기</h1>
+    <p>과목을 선택하세요</p>
   </div>
-  <div>
-    <label>학생 이름/번호 (선택)</label>
-    <input type="text" id="studentName" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px;" />
+  <div class="category-list">
+    <button class="category-btn cat-1" onclick="selectCategory('신경해부생리학', 'number')">
+      <span class="cat-icon">🧠</span>
+      <div class="cat-text">
+        <strong>신경해부생리학</strong>
+        <span>신경계 해부 및 생리학</span>
+      </div>
+    </button>
+    <button class="category-btn cat-2" onclick="selectCategory('운동치료학', 'text')">
+      <span class="cat-icon">🏃</span>
+      <div class="cat-text">
+        <strong>운동치료학</strong>
+        <span>운동 치료 및 재활</span>
+      </div>
+    </button>
+    <button class="category-btn cat-3" onclick="selectCategory('기능해부학', 'text')">
+      <span class="cat-icon">🦴</span>
+      <div class="cat-text">
+        <strong>기능해부학</strong>
+        <span>기능적 해부학 구조</span>
+      </div>
+    </button>
   </div>
 </div>
 
-<!-- 뽑기 카드 -->
-<div class="card">
-  <div class="student-label" id="currentStudentLabel">현재 학생: —</div>
-  <div class="slots" id="slots"></div>
-  <button class="draw-btn active" id="drawBtn" onclick="draw()">🎯 뽑기</button>
-  <button class="next-btn" id="nextBtn" onclick="nextStudent()" style="display:none;">
-    ✅ 다음 학생
-  </button>
-  <p class="notice" id="notice"></p>
-</div>
+<!-- ── 화면 2: 뽑기 ── -->
+<div class="screen" id="screenDraw">
 
-<!-- 기록 카드 -->
-<div class="card history-card">
-  <h2>📋 뽑기 기록</h2>
-  <div class="card-body" id="historyList">
-    <p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 10px 0;">아직 기록이 없습니다.</p>
+  <div class="draw-header">
+    <button class="back-btn" onclick="goBack()">← 과목 선택</button>
+    <div class="draw-header-title">
+      <h1>현재 과목</h1>
+      <h2 id="selectedCategoryLabel"></h2>
+    </div>
   </div>
-  <button class="reset-btn" onclick="resetAll()">🔄 전체 초기화</button>
+
+  <!-- 설정 카드 (숫자 모드) -->
+  <div class="card" id="cardNumberSettings">
+    <h2>⚙️ 설정</h2>
+    <div class="settings-grid" style="grid-template-columns: 1fr 1fr;">
+      <div>
+        <label>총 문제 수</label>
+        <input type="number" id="totalCount" value="30" min="1" />
+      </div>
+      <div>
+        <label>뽑을 문제 수</label>
+        <input type="number" id="drawCount" value="3" min="1" max="10" />
+      </div>
+    </div>
+    <div>
+      <label>학생 이름/번호 (선택)</label>
+      <input type="text" id="studentNameNumber" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px;" />
+    </div>
+  </div>
+
+  <!-- 실기문제 목록 카드 (텍스트 모드) -->
+  <div class="card" id="cardTextSettings" style="display:none;">
+    <div class="list-card-header" onclick="toggleItemList()">
+      <h2 style="border:none; margin:0; padding:0;">📝 실기문제 목록</h2>
+      <span id="listToggleIcon">▲</span>
+    </div>
+    <div id="itemListBody">
+      <div class="list-action-row" style="margin-top:14px;">
+        <button class="action-btn" onclick="openBulkModal()">📋 여러 개 붙여넣기</button>
+        <button class="action-btn" id="defaultListBtn" onclick="loadDefaultList()" style="display:none;">⭐ 기본 목록 불러오기</button>
+        <button class="action-btn" onclick="sortItems()">🔤 가나다 정렬</button>
+        <button class="action-btn danger" onclick="clearAllItems()">✕ 전체 삭제</button>
+      </div>
+      <div class="item-add-row">
+        <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
+          onkeydown="if(event.key==='Enter') addItem()" />
+        <button class="add-btn" onclick="addItem()">+ 추가</button>
+      </div>
+      <p id="itemNotice" style="font-size:0.78rem; margin-bottom:8px; min-height:1.2em;"></p>
+      <div class="item-list" id="itemList">
+        <p class="item-empty">문제를 추가해주세요</p>
+      </div>
+      <p class="item-count" id="itemCount"></p>
+    </div>
+  </div>
+
+  <!-- 일괄 입력 모달 -->
+  <div class="modal-overlay" id="bulkModal">
+    <div class="modal">
+      <h3>📋 여러 개 붙여넣기</h3>
+      <p>한 줄에 하나씩 입력하거나, Word/엑셀에서 복사해서 붙여넣으세요.</p>
+      <textarea id="bulkTextarea" placeholder="예시:
+삼각근
+대흉근
+광배근
+승모근"></textarea>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeBulkModal()">취소</button>
+        <button class="btn-confirm" onclick="confirmBulk()">등록</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 텍스트 모드 학생/뽑기 수 설정 -->
+  <div class="card" id="cardTextDrawSettings" style="display:none;">
+    <h2>⚙️ 설정</h2>
+    <div class="settings-grid" style="grid-template-columns: 1fr 1fr;">
+      <div>
+        <label>뽑을 문제 수</label>
+        <input type="number" id="drawCountText" value="3" min="1" max="10" />
+      </div>
+      <div>
+        <label>학생 이름/번호 (선택)</label>
+        <input type="text" id="studentNameText" placeholder="예: 홍길동" style="text-align:left; padding-left:12px;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 뽑기 카드 -->
+  <div class="card">
+    <div class="student-label" id="currentStudentLabel">현재 학생: —</div>
+
+    <!-- 숫자 모드 슬롯 -->
+    <div class="slots" id="slotsNumber"></div>
+
+    <!-- 텍스트 모드 슬롯 -->
+    <div class="text-slots" id="slotsText" style="display:none;"></div>
+
+    <button class="draw-btn active" id="drawBtn" onclick="draw()">🎯 뽑기</button>
+    <button class="next-btn" id="nextBtn" onclick="nextStudent()" style="display:none;">✅ 다음 학생</button>
+    <p class="notice" id="notice"></p>
+  </div>
+
+  <!-- 기록 카드 -->
+  <div class="card history-card">
+    <h2>📋 뽑기 기록</h2>
+    <div class="card-body" id="historyList">
+      <p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 10px 0;">아직 기록이 없습니다.</p>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">🔄 전체 초기화</button>
+  </div>
+
 </div>
 
 <script>
   let currentPicks = [];
   let history = [];
-  let drawsAllowed = 3;
+  let selectedCategory = '';
+  let categoryType = 'number'; // 'number' | 'text'
 
-  function getSettings() {
-    const min = parseInt(document.getElementById('rangeMin').value) || 1;
-    const max = parseInt(document.getElementById('rangeMax').value) || 30;
-    const count = parseInt(document.getElementById('drawCount').value) || 3;
-    return { min, max, count };
+  // 카테고리별 동작 목록 localStorage 저장
+  function getItemsKey(cat) { return 'items_' + cat; }
+  function loadItems(cat) {
+    try { return JSON.parse(localStorage.getItem(getItemsKey(cat))) || []; }
+    catch { return []; }
+  }
+  function saveItems(cat, items) {
+    localStorage.setItem(getItemsKey(cat), JSON.stringify(items));
   }
 
-  function renderSlots() {
-    const { count } = getSettings();
-    drawsAllowed = count;
-    const container = document.getElementById('slots');
-    container.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-      const div = document.createElement('div');
-      div.className = 'slot' + (currentPicks[i] !== undefined ? ' filled' : '');
-      div.innerHTML = `<span class="slot-num">${i + 1}</span>${currentPicks[i] !== undefined ? currentPicks[i] : '?'}`;
-      container.appendChild(div);
+  let textItems = []; // 현재 과목 동작 목록
+
+  function selectCategory(name, type) {
+    selectedCategory = name;
+    categoryType = type;
+    document.getElementById('selectedCategoryLabel').textContent = name;
+
+    // 모드에 따라 카드 표시
+    document.getElementById('cardNumberSettings').style.display = type === 'number' ? '' : 'none';
+    document.getElementById('cardTextSettings').style.display = type === 'text' ? '' : 'none';
+    document.getElementById('cardTextDrawSettings').style.display = type === 'text' ? '' : 'none';
+    document.getElementById('slotsNumber').style.display = type === 'number' ? '' : 'none';
+    document.getElementById('slotsText').style.display = type === 'text' ? '' : 'none';
+
+    if (type === 'text') {
+      textItems = loadItems(name);
+      renderItemList();
+      const hasDefault = DEFAULT_LISTS[name] && DEFAULT_LISTS[name].length > 0;
+      document.getElementById('defaultListBtn').style.display = hasDefault ? '' : 'none';
+    }
+
+    currentPicks = [];
+    history = [];
+    renderSlots();
+    renderHistory();
+    document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
+    document.getElementById('notice').textContent = '';
+    document.getElementById('nextBtn').style.display = 'none';
+    const btn = document.getElementById('drawBtn');
+    btn.className = 'draw-btn active';
+    btn.onclick = draw;
+
+    showScreen('screenDraw');
+  }
+
+  // ── 동작 목록 관리 ──
+  function setItemNotice(msg, isError) {
+    const el = document.getElementById('itemNotice');
+    el.textContent = msg;
+    el.style.color = isError ? '#e53e3e' : '#38a169';
+    if (msg) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+  }
+
+  function addItem() {
+    const input = document.getElementById('newItemInput');
+    const val = input.value.trim();
+    if (!val) return;
+    if (textItems.includes(val)) {
+      setItemNotice(`"${val}" 은(는) 이미 목록에 있습니다.`, true);
+      input.select();
+      return;
+    }
+    textItems.push(val);
+    saveItems(selectedCategory, textItems);
+    input.value = '';
+    renderItemList();
+    setItemNotice(`"${val}" 추가됨`, false);
+    input.focus();
+  }
+
+  function loadDefaultList() {
+    const defaults = DEFAULT_LISTS[selectedCategory];
+    if (!defaults || defaults.length === 0) return;
+    if (textItems.length > 0 && !confirm('현재 목록에 기본 목록을 추가할까요?\n(기존 항목은 유지됩니다)')) return;
+    const newItems = defaults.filter(d => !textItems.includes(d));
+    textItems = [...textItems, ...newItems];
+    saveItems(selectedCategory, textItems);
+    renderItemList();
+  }
+
+  function clearAllItems() {
+    if (textItems.length === 0) return;
+    if (!confirm('목록을 전체 삭제할까요?')) return;
+    textItems = [];
+    saveItems(selectedCategory, textItems);
+    renderItemList();
+  }
+
+  function openBulkModal() {
+    document.getElementById('bulkTextarea').value = '';
+    document.getElementById('bulkModal').classList.add('open');
+    setTimeout(() => document.getElementById('bulkTextarea').focus(), 100);
+  }
+
+  function closeBulkModal() {
+    document.getElementById('bulkModal').classList.remove('open');
+  }
+
+  function confirmBulk() {
+    const raw = document.getElementById('bulkTextarea').value;
+    const parsed = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+    const duplicates = parsed.filter(s => textItems.includes(s));
+    const newItems = parsed.filter(s => !textItems.includes(s));
+    if (newItems.length === 0 && duplicates.length > 0) {
+      setItemNotice(`${duplicates.length}개가 이미 목록에 있어 추가되지 않았습니다.`, true);
+      closeBulkModal();
+      return;
+    }
+    textItems = [...textItems, ...newItems];
+    saveItems(selectedCategory, textItems);
+    renderItemList();
+    closeBulkModal();
+    const msg = duplicates.length > 0
+      ? `${newItems.length}개 추가됨 (중복 ${duplicates.length}개 제외)`
+      : `${newItems.length}개 추가됨`;
+    setItemNotice(msg, false);
+  }
+
+  function sortItems() {
+    if (textItems.length === 0) return;
+    textItems.sort((a, b) => a.localeCompare(b));
+    saveItems(selectedCategory, textItems);
+    renderItemList();
+    setItemNotice('정렬 완료', false);
+  }
+
+  function deleteItem(idx) {
+    textItems.splice(idx, 1);
+    saveItems(selectedCategory, textItems);
+    renderItemList();
+  }
+
+  function renderItemList() {
+    const list = document.getElementById('itemList');
+    if (textItems.length === 0) {
+      list.innerHTML = '<p class="item-empty">문제를 추가해주세요</p>';
+    } else {
+      list.innerHTML = textItems.map((item, i) => `
+        <div class="item-row">
+          <span class="item-index">${i + 1}</span>
+          <span class="item-name">${item}</span>
+          <button class="del-btn" onclick="deleteItem(${i})">✕</button>
+        </div>
+      `).join('');
+    }
+    document.getElementById('itemCount').textContent =
+      textItems.length > 0 ? `총 ${textItems.length}개` : '';
+  }
+
+  // ── 설정 가져오기 ──
+  function getSettings() {
+    if (categoryType === 'number') {
+      const max = parseInt(document.getElementById('totalCount').value) || 30;
+      const count = parseInt(document.getElementById('drawCount').value) || 3;
+      return { max, count };
+    } else {
+      const count = parseInt(document.getElementById('drawCountText').value) || 3;
+      return { count };
     }
   }
 
+  function getStudentName() {
+    const id = categoryType === 'number' ? 'studentNameNumber' : 'studentNameText';
+    return document.getElementById(id).value.trim();
+  }
+
+  function clearStudentName() {
+    document.getElementById('studentNameNumber').value = '';
+    document.getElementById('studentNameText').value = '';
+  }
+
+  // ── 슬롯 렌더 ──
+  function renderSlots() {
+    const { count } = getSettings();
+    if (categoryType === 'number') {
+      const container = document.getElementById('slotsNumber');
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'slot' + (currentPicks[i] !== undefined ? ' filled' : '');
+        div.innerHTML = `<span class="slot-num">${i + 1}</span>${currentPicks[i] !== undefined ? currentPicks[i] : '?'}`;
+        container.appendChild(div);
+      }
+    } else {
+      const container = document.getElementById('slotsText');
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'text-slot' + (currentPicks[i] !== undefined ? ' filled' : '');
+        div.innerHTML = currentPicks[i] !== undefined
+          ? `<span class="text-slot-num">${i + 1}</span><span class="text-slot-value">${currentPicks[i]}</span>`
+          : `<span class="text-slot-num">${i + 1}</span><span class="text-slot-placeholder">뽑기 대기 중...</span>`;
+        container.appendChild(div);
+      }
+    }
+  }
+
+  // ── 뽑기 ──
   function draw() {
-    const { min, max, count } = getSettings();
+    const { count } = getSettings();
     if (currentPicks.length >= count) return;
 
-    const pool = [];
-    for (let n = min; n <= max; n++) {
-      if (!currentPicks.includes(n)) pool.push(n);
+    let pool;
+    if (categoryType === 'number') {
+      const { max } = getSettings();
+      pool = [];
+      for (let n = 1; n <= max; n++) {
+        if (!currentPicks.includes(n)) pool.push(n);
+      }
+    } else {
+      if (textItems.length === 0) {
+        document.getElementById('notice').textContent = '먼저 실기문제 목록을 추가해주세요.';
+        return;
+      }
+      pool = textItems.filter(item => !currentPicks.includes(item));
     }
 
     if (pool.length === 0) {
-      document.getElementById('notice').textContent = '뽑을 수 있는 번호가 없습니다.';
+      document.getElementById('notice').textContent = '뽑을 수 있는 항목이 없습니다.';
       return;
     }
 
@@ -348,15 +629,14 @@
       notice.textContent = `${currentPicks.length} / ${count} 완료`;
     }
 
-    const nameInput = document.getElementById('studentName').value.trim();
-    const label = nameInput || `학생 ${history.length + 1}`;
+    const name = getStudentName();
+    const label = name || `학생 ${history.length + 1}`;
     document.getElementById('currentStudentLabel').textContent = `현재: ${label}`;
   }
 
   function nextStudent() {
-    const { count } = getSettings();
-    const nameInput = document.getElementById('studentName').value.trim();
-    const label = nameInput || `학생 ${history.length + 1}`;
+    const name = getStudentName();
+    const label = name || `학생 ${history.length + 1}`;
 
     if (currentPicks.length > 0) {
       history.push({ label, picks: [...currentPicks] });
@@ -364,7 +644,7 @@
     }
 
     currentPicks = [];
-    document.getElementById('studentName').value = '';
+    clearStudentName();
     document.getElementById('nextBtn').style.display = 'none';
     document.getElementById('notice').textContent = '';
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
@@ -372,7 +652,6 @@
     const btn = document.getElementById('drawBtn');
     btn.className = 'draw-btn active';
     btn.onclick = draw;
-
     renderSlots();
   }
 
@@ -382,11 +661,11 @@
       list.innerHTML = '<p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding:10px 0;">아직 기록이 없습니다.</p>';
       return;
     }
-    list.innerHTML = history.map((h, i) => `
+    list.innerHTML = history.map(h => `
       <div class="history-row">
         <span class="student-tag">${h.label}</span>
-        <div class="history-nums">
-          ${h.picks.map(p => `<span class="num-badge">${p}</span>`).join('')}
+        <div class="history-picks">
+          ${h.picks.map(p => `<span class="pick-badge">${p}</span>`).join('')}
         </div>
       </div>
     `).join('');
@@ -397,7 +676,7 @@
     if (!confirm('모든 기록을 초기화할까요?')) return;
     currentPicks = [];
     history = [];
-    document.getElementById('studentName').value = '';
+    clearStudentName();
     document.getElementById('notice').textContent = '';
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
     document.getElementById('nextBtn').style.display = 'none';
@@ -408,14 +687,55 @@
     renderHistory();
   }
 
-  // 설정 변경 시 슬롯 재렌더
-  document.getElementById('drawCount').addEventListener('input', () => {
-    currentPicks = [];
-    renderSlots();
-  });
+  function goBack() {
+    if (history.length > 0 && !confirm('과목 선택으로 돌아가면 현재 기록이 사라집니다. 계속할까요?')) return;
+    showScreen('screenCategory');
+  }
 
-  // 초기 렌더
-  renderSlots();
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  const DEFAULT_LISTS = {
+    '기능해부학': [
+      'Sternocleidomastoid','Scalenus anterior','Scalenus medius','Scalenus posterior',
+      'Splenius capitis','Semispinalis capitis','Semispinalis cervicis',
+      'Trapezius (upper)','Trapezius (middle)','Trapezius (lower)',
+      'Serratus anterior','Rhomboid major','Rhomboid minor',
+      'Deltoid (anterior)','Deltoid (middle)','Deltoid (posterior)',
+      'Pectoralis major','Pectoralis minor','Latissimus dorsi',
+      'Teres major','Teres minor','Subscapularis','Supraspinatus','Infraspinatus',
+      'Coracobrachialis','Biceps brachii','Brachialis','Triceps brachii',
+      'Pronator teres','Pronator quadratus','Supinator',
+      'Flexor carpi radialis','Flexor carpi ulnaris','Palmaris longus',
+      'Extensor carpi radialis longus','Extensor carpi radialis brevis','Extensor carpi ulnaris',
+      'Rectus abdominis','External oblique','Internal oblique','Transversus abdominis',
+      'Quadratus lumborum','Erector spinae','Multifidus',
+      'Iliopsoas','Iliacus','Psoas major',
+      'Gluteus maximus','Gluteus medius','Gluteus minimus','Piriformis',
+      'Rectus femoris','Vastus lateralis','Vastus medialis','Vastus intermedius',
+      'Sartorius','Gracilis','Pectineus',
+      'Adductor longus','Adductor brevis','Adductor magnus',
+      'Biceps femoris','Semitendinosus','Semimembranosus','Popliteus',
+      'Gastrocnemius','Soleus','Plantaris',
+      'Tibialis anterior','Tibialis posterior',
+      'Fibularis longus','Fibularis brevis',
+      'Extensor digitorum longus','Extensor digitorum brevis','Extensor hallucis longus',
+      'Flexor digitorum longus','Flexor digitorum brevis','Flexor hallucis longus'
+    ],
+    '운동치료학': []
+  };
+
+  let itemListOpen = true;
+  function toggleItemList() {
+    itemListOpen = !itemListOpen;
+    document.getElementById('itemListBody').style.display = itemListOpen ? '' : 'none';
+    document.getElementById('listToggleIcon').textContent = itemListOpen ? '▲' : '▼';
+  }
+
+  document.getElementById('drawCount').addEventListener('input', () => { currentPicks = []; renderSlots(); });
+  document.getElementById('drawCountText').addEventListener('input', () => { currentPicks = []; renderSlots(); });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js');
