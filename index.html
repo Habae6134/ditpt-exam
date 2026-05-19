@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>실기시험 제비뽑기</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="제비뽑기" />
+  <meta name="theme-color" content="#3182ce" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -410,6 +416,10 @@
 
   // 초기 렌더
   renderSlots();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
 </script>
 </body>
 </html>
