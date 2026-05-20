@@ -236,10 +236,15 @@
       font-size: 0.95rem; font-weight: bold; outline: none; width: 100%;
     }
     .saved-slot-btns { display: flex; gap: 6px; flex-shrink: 0; }
-    .slot-save-btn { padding: 6px 12px; background: #3182ce; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-    .slot-save-btn:hover { background: #2b6cb0; }
-    .slot-load-btn { padding: 6px 12px; background: white; color: #38a169; border: 1.5px solid #38a169; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-    .slot-load-btn:hover { background: #f0fff4; }
+    .save-slot-btn { padding: 10px 14px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .save-slot-btn:hover { background: #38a169; }
+    .slot-option-btn {
+      width: 100%; padding: 14px 16px; margin-bottom: 8px; border: 2px solid #e2e8f0;
+      border-radius: 10px; background: white; text-align: left; cursor: pointer; display: block;
+    }
+    .slot-option-btn:hover { border-color: #4299e1; background: #ebf8ff; }
+    .slot-option-btn strong { display: block; font-size: 0.95rem; color: #2d3748; }
+    .slot-option-btn span { font-size: 0.75rem; color: #a0aec0; }
 
     @media (max-width: 400px) {
       .slot { width: 65px; height: 65px; font-size: 1.3rem; }
@@ -322,6 +327,7 @@
           <div class="more-menu" id="moreMenu">
             <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
             <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
+            <div id="moreMenuSlots"></div>
             <div class="more-menu-divider"></div>
             <button class="more-menu-item danger" onclick="clearAllItems(); closeMoreMenu()">✕ 전체 삭제</button>
           </div>
@@ -330,6 +336,7 @@
           <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
             onkeydown="if(event.key==='Enter') addItem()" />
           <button class="add-btn" onclick="addItem()">+ 추가</button>
+          <button class="save-slot-btn" onclick="openSaveSlotModal()">저장</button>
         </div>
       </div>
       <p id="itemNotice" style="font-size:0.78rem; margin-bottom:8px; min-height:1.2em;"></p>
@@ -357,10 +364,16 @@
     </div>
   </div>
 
-  <!-- 저장 슬롯 카드 (텍스트 모드) -->
-  <div class="card" id="cardSavedSlots" style="display:none;">
-    <h2>💾 저장 슬롯</h2>
-    <div id="savedSlotList"></div>
+  <!-- 저장 슬롯 선택 모달 -->
+  <div class="modal-overlay" id="saveSlotModal">
+    <div class="modal">
+      <h3>💾 저장할 슬롯 선택</h3>
+      <p>현재 문제 목록을 저장할 슬롯을 선택하세요.</p>
+      <div id="saveSlotOptions"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeSaveSlotModal()">취소</button>
+      </div>
+    </div>
   </div>
 
   <!-- 텍스트 모드 설정 -->
@@ -422,7 +435,6 @@
 
     document.getElementById('cardNumberSettings').style.display = type === 'number' ? '' : 'none';
     document.getElementById('cardTextSettings').style.display = type === 'text' ? '' : 'none';
-    document.getElementById('cardSavedSlots').style.display = type === 'text' ? '' : 'none';
     document.getElementById('cardTextDrawSettings').style.display = type === 'text' ? '' : 'none';
     document.getElementById('slotsNumber').style.display = type === 'number' ? '' : 'none';
     document.getElementById('slotsText').style.display = type === 'text' ? '' : 'none';
@@ -564,28 +576,39 @@
   }
 
   function renderSavedSlots() {
-    document.getElementById('savedSlotList').innerHTML = savedSlots.map(s => `
-      <div class="saved-slot-item">
-        <div class="saved-slot-info">
-          <div class="saved-slot-name" id="slotName_${s.slot}" onclick="editSlotName(${s.slot})">
-            ${s.name} <span style="font-size:0.7rem; color:#a0aec0;">✏️</span>
-          </div>
-          <input class="saved-slot-name-input" id="slotNameInput_${s.slot}" style="display:none;"
-            value="${s.name}"
-            onblur="saveSlotName(${s.slot})"
-            onkeydown="if(event.key==='Enter') this.blur()" />
-          <div class="saved-slot-count">${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}</div>
-        </div>
-        <div class="saved-slot-btns">
-          <button class="slot-save-btn" onclick="saveToSlot(${s.slot})">저장</button>
-          ${s.items.length > 0 ? `<button class="slot-load-btn" onclick="loadFromSlot(${s.slot})">불러오기</button>` : ''}
-        </div>
+    // 저장 슬롯 선택 모달 옵션
+    document.getElementById('saveSlotOptions').innerHTML = savedSlots.map(s => `
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="saveToSlot(${s.slot}); closeSaveSlotModal()">
+          <strong>${s.name}</strong>
+          <span>${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}</span>
+        </button>
+        <button onclick="promptRenameSlot(${s.slot})" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#718096; white-space:nowrap;">✏️ 이름</button>
       </div>
     `).join('');
+
+    // ⋮ 메뉴 슬롯 불러오기 항목
+    const filledSlots = savedSlots.filter(s => s.items.length > 0);
+    document.getElementById('moreMenuSlots').innerHTML = filledSlots.length > 0
+      ? `<div class="more-menu-divider"></div>` +
+        filledSlots.map(s => `
+          <button class="more-menu-item" onclick="loadFromSlot(${s.slot}); closeMoreMenu()">
+            📂 "${s.name}" 불러오기
+          </button>
+        `).join('')
+      : '';
+  }
+
+  function openSaveSlotModal() {
+    if (textItems.length === 0) { setItemNotice('저장할 문제가 없습니다.', true); return; }
+    document.getElementById('saveSlotModal').classList.add('open');
+  }
+
+  function closeSaveSlotModal() {
+    document.getElementById('saveSlotModal').classList.remove('open');
   }
 
   async function saveToSlot(slotNum) {
-    if (textItems.length === 0) { setItemNotice('저장할 문제가 없습니다.', true); return; }
     const items = textItems.map(i => i.name);
     const { error } = await db.from('saved_lists')
       .update({ items, updated_at: new Date().toISOString() })
@@ -594,7 +617,18 @@
     const s = savedSlots.find(s => s.slot === slotNum);
     if (s) s.items = items;
     renderSavedSlots();
-    setItemNotice(`슬롯 ${slotNum}에 ${items.length}개 저장됨`, false);
+    setItemNotice(`"${s?.name}" 에 ${items.length}개 저장됨`, false);
+  }
+
+  async function promptRenameSlot(slotNum) {
+    const s = savedSlots.find(s => s.slot === slotNum);
+    const newName = prompt('슬롯 이름을 입력하세요:', s?.name || `슬롯 ${slotNum}`);
+    if (!newName || !newName.trim()) return;
+    const { error } = await db.from('saved_lists')
+      .update({ name: newName.trim() })
+      .eq('category', selectedCategory).eq('slot', slotNum);
+    if (!error && s) s.name = newName.trim();
+    renderSavedSlots();
   }
 
   async function loadFromSlot(slotNum) {
@@ -608,27 +642,6 @@
     textItems = data;
     renderItemList();
     setItemNotice(`"${s.name}" 불러옴 (${data.length}개)`, false);
-  }
-
-  function editSlotName(slotNum) {
-    document.getElementById(`slotName_${slotNum}`).style.display = 'none';
-    const input = document.getElementById(`slotNameInput_${slotNum}`);
-    input.style.display = '';
-    input.focus();
-    input.select();
-  }
-
-  async function saveSlotName(slotNum) {
-    const input = document.getElementById(`slotNameInput_${slotNum}`);
-    const newName = input.value.trim() || `슬롯 ${slotNum}`;
-    const { error } = await db.from('saved_lists')
-      .update({ name: newName })
-      .eq('category', selectedCategory).eq('slot', slotNum);
-    if (!error) {
-      const s = savedSlots.find(s => s.slot === slotNum);
-      if (s) s.name = newName;
-    }
-    renderSavedSlots();
   }
 
   // ── 더보기 메뉴 ──
