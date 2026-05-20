@@ -68,13 +68,6 @@
     .draw-header-title { flex: 1; }
     .draw-header-title h1 { font-size: 1rem; color: #718096; font-weight: normal; }
     .draw-header-title h2 { font-size: 1.2rem; color: #1a365d; font-weight: bold; }
-    .admin-lock-btn {
-      background: white; border: none; border-radius: 10px; padding: 8px 10px;
-      font-size: 1rem; cursor: pointer; color: #a0aec0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;
-    }
-    .admin-lock-btn:hover { background: #f7fafc; }
-    .admin-lock-btn.active { color: #38a169; }
 
     /* ── 설정 ── */
     .settings-grid { display: grid; gap: 10px; margin-bottom: 14px; }
@@ -278,7 +271,6 @@
       <h1>현재 과목</h1>
       <h2 id="selectedCategoryLabel"></h2>
     </div>
-    <button class="admin-lock-btn" id="adminLockBtn" onclick="toggleAdmin()">🔒</button>
   </div>
 
   <!-- 설정 카드 (숫자 모드) -->
@@ -307,8 +299,7 @@
       <span id="listToggleIcon">▲</span>
     </div>
     <div id="itemListBody">
-      <!-- 관리자 전용 영역 -->
-      <div id="adminControls" style="display:none;">
+      <div id="adminControls" style="margin-top:14px;">
         <div class="more-wrap" style="margin-top:14px;">
           <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
           <div class="more-menu" id="moreMenu">
@@ -345,22 +336,6 @@
       <div class="modal-btns">
         <button class="btn-cancel" onclick="closeBulkModal()">취소</button>
         <button class="btn-confirm" onclick="confirmBulk()">등록</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 관리자 로그인 모달 -->
-  <div class="modal-overlay" id="adminModal">
-    <div class="modal">
-      <h3>🔒 관리자 로그인</h3>
-      <p>문제 목록을 수정하려면 비밀번호를 입력하세요.</p>
-      <input type="password" id="adminPwInput" placeholder="비밀번호"
-        style="text-align:left; padding-left:12px; margin-bottom:8px;"
-        onkeydown="if(event.key==='Enter') confirmAdmin()" />
-      <p id="adminPwError" style="display:none; color:#e53e3e; font-size:0.8rem; margin-bottom:4px;">비밀번호가 틀렸습니다.</p>
-      <div class="modal-btns">
-        <button class="btn-cancel" onclick="closeAdminModal()">취소</button>
-        <button class="btn-confirm" onclick="confirmAdmin()">확인</button>
       </div>
     </div>
   </div>
@@ -409,15 +384,11 @@
     'sb_publishable_PD9vQ5uCMV8F80np7BCKXQ_N9taMucs'
   );
 
-  // ── 관리자 비밀번호 (변경 가능) ──
-  const ADMIN_PASSWORD = '1234';
-
   let currentPicks = [];
   let history = [];
   let selectedCategory = '';
   let categoryType = 'number';
   let textItems = []; // [{id, name}]
-  let isAdmin = false;
 
   // ── 카테고리 선택 ──
   async function selectCategory(name, type) {
@@ -552,49 +523,11 @@
         <div class="item-row">
           <span class="item-index">${i + 1}</span>
           <span class="item-name">${item.name}</span>
-          ${isAdmin ? `<button class="del-btn" onclick="deleteItem('${item.id}')">✕</button>` : ''}
+          <button class="del-btn" onclick="deleteItem('${item.id}')">✕</button>
         </div>
       `).join('');
     }
     document.getElementById('itemCount').textContent = textItems.length > 0 ? `총 ${textItems.length}개` : '';
-  }
-
-  // ── 관리자 모드 ──
-  function toggleAdmin() {
-    if (isAdmin) {
-      isAdmin = false;
-      document.getElementById('adminLockBtn').textContent = '🔒';
-      document.getElementById('adminLockBtn').classList.remove('active');
-      document.getElementById('adminControls').style.display = 'none';
-      renderItemList();
-    } else {
-      openAdminLogin();
-    }
-  }
-
-  function openAdminLogin() {
-    document.getElementById('adminPwError').style.display = 'none';
-    document.getElementById('adminPwInput').value = '';
-    document.getElementById('adminModal').classList.add('open');
-    setTimeout(() => document.getElementById('adminPwInput').focus(), 100);
-  }
-
-  function closeAdminModal() {
-    document.getElementById('adminModal').classList.remove('open');
-  }
-
-  function confirmAdmin() {
-    const pw = document.getElementById('adminPwInput').value;
-    if (pw === ADMIN_PASSWORD) {
-      isAdmin = true;
-      closeAdminModal();
-      document.getElementById('adminLockBtn').textContent = '🔓';
-      document.getElementById('adminLockBtn').classList.add('active');
-      document.getElementById('adminControls').style.display = '';
-      renderItemList();
-    } else {
-      document.getElementById('adminPwError').style.display = '';
-    }
   }
 
   // ── 더보기 메뉴 ──
