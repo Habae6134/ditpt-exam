@@ -224,6 +224,23 @@
     .more-menu-item.danger:hover { background: #fff5f5; }
     .more-menu-divider { height: 1px; background: #e2e8f0; margin: 4px 0; }
 
+    /* ── 저장 슬롯 ── */
+    .saved-slot-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; }
+    .saved-slot-item:last-child { border-bottom: none; }
+    .saved-slot-info { flex: 1; }
+    .saved-slot-name { font-size: 0.95rem; color: #2d3748; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .saved-slot-name:hover { color: #3182ce; }
+    .saved-slot-count { font-size: 0.75rem; color: #a0aec0; margin-top: 2px; }
+    .saved-slot-name-input {
+      border: 2px solid #4299e1; border-radius: 6px; padding: 3px 8px;
+      font-size: 0.95rem; font-weight: bold; outline: none; width: 100%;
+    }
+    .saved-slot-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .slot-save-btn { padding: 6px 12px; background: #3182ce; color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+    .slot-save-btn:hover { background: #2b6cb0; }
+    .slot-load-btn { padding: 6px 12px; background: white; color: #38a169; border: 1.5px solid #38a169; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+    .slot-load-btn:hover { background: #f0fff4; }
+
     @media (max-width: 400px) {
       .slot { width: 65px; height: 65px; font-size: 1.3rem; }
     }
@@ -340,6 +357,12 @@
     </div>
   </div>
 
+  <!-- 저장 슬롯 카드 (텍스트 모드) -->
+  <div class="card" id="cardSavedSlots" style="display:none;">
+    <h2>💾 저장 슬롯</h2>
+    <div id="savedSlotList"></div>
+  </div>
+
   <!-- 텍스트 모드 설정 -->
   <div class="card" id="cardTextDrawSettings" style="display:none;">
     <h2>⚙️ 설정</h2>
@@ -389,6 +412,7 @@
   let selectedCategory = '';
   let categoryType = 'number';
   let textItems = []; // [{id, name}]
+  let savedSlots = []; // [{slot, name, items}]
 
   // ── 카테고리 선택 ──
   async function selectCategory(name, type) {
@@ -398,12 +422,14 @@
 
     document.getElementById('cardNumberSettings').style.display = type === 'number' ? '' : 'none';
     document.getElementById('cardTextSettings').style.display = type === 'text' ? '' : 'none';
+    document.getElementById('cardSavedSlots').style.display = type === 'text' ? '' : 'none';
     document.getElementById('cardTextDrawSettings').style.display = type === 'text' ? '' : 'none';
     document.getElementById('slotsNumber').style.display = type === 'number' ? '' : 'none';
     document.getElementById('slotsText').style.display = type === 'text' ? '' : 'none';
 
     if (type === 'text') {
       await loadItemsFromDB(name);
+      await loadSlotsFromDB(name);
     }
 
     currentPicks = [];
@@ -528,6 +554,81 @@
       `).join('');
     }
     document.getElementById('itemCount').textContent = textItems.length > 0 ? `총 ${textItems.length}개` : '';
+  }
+
+  // ── 저장 슬롯 ──
+  async function loadSlotsFromDB(category) {
+    const { data } = await db.from('saved_lists').select('*').eq('category', category).order('slot');
+    savedSlots = data || [];
+    renderSavedSlots();
+  }
+
+  function renderSavedSlots() {
+    document.getElementById('savedSlotList').innerHTML = savedSlots.map(s => `
+      <div class="saved-slot-item">
+        <div class="saved-slot-info">
+          <div class="saved-slot-name" id="slotName_${s.slot}" onclick="editSlotName(${s.slot})">
+            ${s.name} <span style="font-size:0.7rem; color:#a0aec0;">✏️</span>
+          </div>
+          <input class="saved-slot-name-input" id="slotNameInput_${s.slot}" style="display:none;"
+            value="${s.name}"
+            onblur="saveSlotName(${s.slot})"
+            onkeydown="if(event.key==='Enter') this.blur()" />
+          <div class="saved-slot-count">${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}</div>
+        </div>
+        <div class="saved-slot-btns">
+          <button class="slot-save-btn" onclick="saveToSlot(${s.slot})">저장</button>
+          ${s.items.length > 0 ? `<button class="slot-load-btn" onclick="loadFromSlot(${s.slot})">불러오기</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function saveToSlot(slotNum) {
+    if (textItems.length === 0) { setItemNotice('저장할 문제가 없습니다.', true); return; }
+    const items = textItems.map(i => i.name);
+    const { error } = await db.from('saved_lists')
+      .update({ items, updated_at: new Date().toISOString() })
+      .eq('category', selectedCategory).eq('slot', slotNum);
+    if (error) { setItemNotice('저장 실패', true); return; }
+    const s = savedSlots.find(s => s.slot === slotNum);
+    if (s) s.items = items;
+    renderSavedSlots();
+    setItemNotice(`슬롯 ${slotNum}에 ${items.length}개 저장됨`, false);
+  }
+
+  async function loadFromSlot(slotNum) {
+    const s = savedSlots.find(s => s.slot === slotNum);
+    if (!s || s.items.length === 0) return;
+    if (!confirm(`"${s.name}" (${s.items.length}개)을 불러올까요?\n현재 목록이 교체됩니다.`)) return;
+    await db.from('questions').delete().eq('category', selectedCategory);
+    const inserts = s.items.map(name => ({ category: selectedCategory, name }));
+    const { data, error } = await db.from('questions').insert(inserts).select();
+    if (error) { setItemNotice('불러오기 실패', true); return; }
+    textItems = data;
+    renderItemList();
+    setItemNotice(`"${s.name}" 불러옴 (${data.length}개)`, false);
+  }
+
+  function editSlotName(slotNum) {
+    document.getElementById(`slotName_${slotNum}`).style.display = 'none';
+    const input = document.getElementById(`slotNameInput_${slotNum}`);
+    input.style.display = '';
+    input.focus();
+    input.select();
+  }
+
+  async function saveSlotName(slotNum) {
+    const input = document.getElementById(`slotNameInput_${slotNum}`);
+    const newName = input.value.trim() || `슬롯 ${slotNum}`;
+    const { error } = await db.from('saved_lists')
+      .update({ name: newName })
+      .eq('category', selectedCategory).eq('slot', slotNum);
+    if (!error) {
+      const s = savedSlots.find(s => s.slot === slotNum);
+      if (s) s.name = newName;
+    }
+    renderSavedSlots();
   }
 
   // ── 더보기 메뉴 ──
