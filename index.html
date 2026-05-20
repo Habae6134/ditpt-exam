@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="제비뽑기" />
   <meta name="theme-color" content="#3182ce" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -67,21 +68,26 @@
     .draw-header-title { flex: 1; }
     .draw-header-title h1 { font-size: 1rem; color: #718096; font-weight: normal; }
     .draw-header-title h2 { font-size: 1.2rem; color: #1a365d; font-weight: bold; }
+    .admin-lock-btn {
+      background: white; border: none; border-radius: 10px; padding: 8px 10px;
+      font-size: 1rem; cursor: pointer; color: #a0aec0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;
+    }
+    .admin-lock-btn:hover { background: #f7fafc; }
+    .admin-lock-btn.active { color: #38a169; }
 
     /* ── 설정 ── */
     .settings-grid { display: grid; gap: 10px; margin-bottom: 14px; }
     label { font-size: 0.8rem; color: #718096; display: block; margin-bottom: 4px; }
-    input[type="number"], input[type="text"] {
+    input[type="number"], input[type="text"], input[type="password"] {
       width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;
       font-size: 1rem; text-align: center; outline: none; transition: border-color 0.2s;
     }
     input:focus { border-color: #4299e1; }
 
-    /* ── 동작 목록 카드 (텍스트 모드) ── */
+    /* ── 동작 목록 카드 ── */
     .item-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
-    .item-add-row input {
-      flex: 1; text-align: left; padding-left: 12px; font-size: 0.95rem;
-    }
+    .item-add-row input { flex: 1; text-align: left; padding-left: 12px; font-size: 0.95rem; }
     .add-btn {
       padding: 10px 16px; background: #3182ce; color: white; border: none;
       border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; white-space: nowrap;
@@ -112,7 +118,7 @@
     .list-card-header:hover { opacity: 0.75; }
     #listToggleIcon { font-size: 0.75rem; color: #a0aec0; }
 
-    /* ── 번호 슬롯 (숫자 모드) ── */
+    /* ── 번호 슬롯 ── */
     .student-label { text-align: center; font-size: 1.1rem; color: #2d3748; margin-bottom: 16px; font-weight: bold; }
     .slots { display: flex; justify-content: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
     .slot {
@@ -121,10 +127,7 @@
       font-size: 1.6rem; font-weight: bold; color: #a0aec0;
       background: #f7fafc; transition: all 0.3s; position: relative;
     }
-    .slot.filled {
-      border-style: solid; border-color: #4299e1;
-      background: #ebf8ff; color: #2b6cb0; animation: popIn 0.3s ease;
-    }
+    .slot.filled { border-style: solid; border-color: #4299e1; background: #ebf8ff; color: #2b6cb0; animation: popIn 0.3s ease; }
     .slot-num { position: absolute; top: 4px; left: 8px; font-size: 0.6rem; color: #90cdf4; }
 
     /* ── 텍스트 결과 슬롯 ── */
@@ -134,10 +137,7 @@
       display: flex; align-items: center; gap: 12px;
       background: #f7fafc; transition: all 0.3s;
     }
-    .text-slot.filled {
-      border-style: solid; border-color: #4299e1;
-      background: #ebf8ff; animation: popIn 0.3s ease;
-    }
+    .text-slot.filled { border-style: solid; border-color: #4299e1; background: #ebf8ff; animation: popIn 0.3s ease; }
     .text-slot-num { font-size: 0.75rem; color: #90cdf4; font-weight: bold; width: 18px; flex-shrink: 0; }
     .text-slot-value { font-size: 1.05rem; font-weight: bold; color: #2b6cb0; }
     .text-slot-placeholder { font-size: 1rem; color: #cbd5e0; }
@@ -153,10 +153,7 @@
       width: 100%; padding: 18px; font-size: 1.2rem; font-weight: bold;
       border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
     }
-    .draw-btn.active {
-      background: linear-gradient(135deg, #3182ce, #2b6cb0);
-      color: white; box-shadow: 0 4px 14px rgba(49,130,206,0.4);
-    }
+    .draw-btn.active { background: linear-gradient(135deg, #3182ce, #2b6cb0); color: white; box-shadow: 0 4px 14px rgba(49,130,206,0.4); }
     .draw-btn.active:hover { transform: translateY(-2px); }
     .draw-btn.active:active { transform: translateY(0); }
     .draw-btn.disabled { background: #e2e8f0; color: #a0aec0; cursor: not-allowed; }
@@ -181,17 +178,11 @@
     .history-card .card-body { max-height: 260px; overflow-y: auto; }
     .history-row { display: flex; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; }
     .history-row:last-child { border-bottom: none; }
-    .student-tag {
-      background: #ebf8ff; color: #2b6cb0; border-radius: 6px;
-      padding: 2px 8px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; margin-top: 2px;
-    }
+    .student-tag { background: #ebf8ff; color: #2b6cb0; border-radius: 6px; padding: 2px 8px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; margin-top: 2px; }
     .history-picks { display: flex; gap: 6px; flex-wrap: wrap; }
-    .pick-badge {
-      background: #4299e1; color: white; border-radius: 8px;
-      padding: 2px 10px; font-weight: bold; font-size: 0.85rem;
-    }
+    .pick-badge { background: #4299e1; color: white; border-radius: 8px; padding: 2px 10px; font-weight: bold; font-size: 0.85rem; }
 
-    /* ── 일괄입력 모달 ── */
+    /* ── 모달 ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.5); z-index: 100;
@@ -207,8 +198,7 @@
     .modal p { font-size: 0.8rem; color: #718096; margin-bottom: 10px; }
     .modal textarea {
       width: 100%; height: 180px; border: 2px solid #e2e8f0; border-radius: 8px;
-      padding: 10px 12px; font-size: 0.9rem; resize: none; outline: none;
-      font-family: inherit;
+      padding: 10px 12px; font-size: 0.9rem; resize: none; outline: none; font-family: inherit;
     }
     .modal textarea:focus { border-color: #4299e1; }
     .modal-btns { display: flex; gap: 8px; margin-top: 12px; }
@@ -218,11 +208,11 @@
     .btn-cancel { background: #e2e8f0; color: #4a5568; }
     .btn-cancel:hover { background: #cbd5e0; }
 
+    /* ── ⋮ 더보기 메뉴 ── */
     .more-wrap { position: relative; margin-bottom: 12px; display: flex; justify-content: flex-end; }
     .more-btn {
       background: white; border: 1.5px solid #e2e8f0; border-radius: 8px;
-      padding: 6px 12px; font-size: 1.1rem; cursor: pointer; color: #4a5568;
-      line-height: 1;
+      padding: 6px 12px; font-size: 1.1rem; cursor: pointer; color: #4a5568; line-height: 1;
     }
     .more-btn:hover { background: #f7fafc; }
     .more-menu {
@@ -288,6 +278,7 @@
       <h1>현재 과목</h1>
       <h2 id="selectedCategoryLabel"></h2>
     </div>
+    <button class="admin-lock-btn" id="adminLockBtn" onclick="toggleAdmin()">🔒</button>
   </div>
 
   <!-- 설정 카드 (숫자 모드) -->
@@ -316,26 +307,26 @@
       <span id="listToggleIcon">▲</span>
     </div>
     <div id="itemListBody">
-      <div class="more-wrap" style="margin-top:14px;">
-        <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
-        <div class="more-menu" id="moreMenu">
-          <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
-          <button class="more-menu-item" id="defaultListBtn" onclick="loadDefaultList(); closeMoreMenu()" style="display:none;">⭐ 기본 목록 불러오기</button>
-          <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
-          <div class="more-menu-divider"></div>
-          <button class="more-menu-item" onclick="saveAsDefault(); closeMoreMenu()">💾 현재 목록을 기본으로 저장</button>
-          <div class="more-menu-divider"></div>
-          <button class="more-menu-item danger" onclick="clearAllItems(); closeMoreMenu()">✕ 전체 삭제</button>
+      <!-- 관리자 전용 영역 -->
+      <div id="adminControls" style="display:none;">
+        <div class="more-wrap" style="margin-top:14px;">
+          <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
+          <div class="more-menu" id="moreMenu">
+            <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
+            <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
+            <div class="more-menu-divider"></div>
+            <button class="more-menu-item danger" onclick="clearAllItems(); closeMoreMenu()">✕ 전체 삭제</button>
+          </div>
         </div>
-      </div>
-      <div class="item-add-row">
-        <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
-          onkeydown="if(event.key==='Enter') addItem()" />
-        <button class="add-btn" onclick="addItem()">+ 추가</button>
+        <div class="item-add-row">
+          <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
+            onkeydown="if(event.key==='Enter') addItem()" />
+          <button class="add-btn" onclick="addItem()">+ 추가</button>
+        </div>
       </div>
       <p id="itemNotice" style="font-size:0.78rem; margin-bottom:8px; min-height:1.2em;"></p>
       <div class="item-list" id="itemList">
-        <p class="item-empty">문제를 추가해주세요</p>
+        <p class="item-empty">불러오는 중...</p>
       </div>
       <p class="item-count" id="itemCount"></p>
     </div>
@@ -358,7 +349,23 @@
     </div>
   </div>
 
-  <!-- 텍스트 모드 학생/뽑기 수 설정 -->
+  <!-- 관리자 로그인 모달 -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal">
+      <h3>🔒 관리자 로그인</h3>
+      <p>문제 목록을 수정하려면 비밀번호를 입력하세요.</p>
+      <input type="password" id="adminPwInput" placeholder="비밀번호"
+        style="text-align:left; padding-left:12px; margin-bottom:8px;"
+        onkeydown="if(event.key==='Enter') confirmAdmin()" />
+      <p id="adminPwError" style="display:none; color:#e53e3e; font-size:0.8rem; margin-bottom:4px;">비밀번호가 틀렸습니다.</p>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeAdminModal()">취소</button>
+        <button class="btn-confirm" onclick="confirmAdmin()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 텍스트 모드 설정 -->
   <div class="card" id="cardTextDrawSettings" style="display:none;">
     <h2>⚙️ 설정</h2>
     <div class="settings-grid" style="grid-template-columns: 1fr 1fr;">
@@ -376,13 +383,8 @@
   <!-- 뽑기 카드 -->
   <div class="card">
     <div class="student-label" id="currentStudentLabel">현재 학생: —</div>
-
-    <!-- 숫자 모드 슬롯 -->
     <div class="slots" id="slotsNumber"></div>
-
-    <!-- 텍스트 모드 슬롯 -->
     <div class="text-slots" id="slotsText" style="display:none;"></div>
-
     <button class="draw-btn active" id="drawBtn" onclick="draw()">🎯 뽑기</button>
     <button class="next-btn" id="nextBtn" onclick="nextStudent()" style="display:none;">✅ 다음 학생</button>
     <p class="notice" id="notice"></p>
@@ -400,29 +402,29 @@
 </div>
 
 <script>
+  // ── Supabase 초기화 ──
+  const { createClient } = supabase;
+  const db = createClient(
+    'https://apuqrovmutfzrcyobvif.supabase.co',
+    'sb_publishable_PD9vQ5uCMV8F80np7BCKXQ_N9taMucs'
+  );
+
+  // ── 관리자 비밀번호 (변경 가능) ──
+  const ADMIN_PASSWORD = '1234';
+
   let currentPicks = [];
   let history = [];
   let selectedCategory = '';
-  let categoryType = 'number'; // 'number' | 'text'
+  let categoryType = 'number';
+  let textItems = []; // [{id, name}]
+  let isAdmin = false;
 
-  // 카테고리별 동작 목록 localStorage 저장
-  function getItemsKey(cat) { return 'items_' + cat; }
-  function loadItems(cat) {
-    try { return JSON.parse(localStorage.getItem(getItemsKey(cat))) || []; }
-    catch { return []; }
-  }
-  function saveItems(cat, items) {
-    localStorage.setItem(getItemsKey(cat), JSON.stringify(items));
-  }
-
-  let textItems = []; // 현재 과목 동작 목록
-
-  function selectCategory(name, type) {
+  // ── 카테고리 선택 ──
+  async function selectCategory(name, type) {
     selectedCategory = name;
     categoryType = type;
     document.getElementById('selectedCategoryLabel').textContent = name;
 
-    // 모드에 따라 카드 표시
     document.getElementById('cardNumberSettings').style.display = type === 'number' ? '' : 'none';
     document.getElementById('cardTextSettings').style.display = type === 'text' ? '' : 'none';
     document.getElementById('cardTextDrawSettings').style.display = type === 'text' ? '' : 'none';
@@ -430,11 +432,7 @@
     document.getElementById('slotsText').style.display = type === 'text' ? '' : 'none';
 
     if (type === 'text') {
-      textItems = loadItems(name);
-      renderItemList();
-      let savedDefault; try { savedDefault = JSON.parse(localStorage.getItem(getSavedDefaultKey(name))); } catch {}
-      const hasDefault = (savedDefault && savedDefault.length) || (DEFAULT_LISTS[name] && DEFAULT_LISTS[name].length > 0);
-      document.getElementById('defaultListBtn').style.display = hasDefault ? '' : 'none';
+      await loadItemsFromDB(name);
     }
 
     currentPicks = [];
@@ -451,7 +449,93 @@
     showScreen('screenDraw');
   }
 
-  // ── 동작 목록 관리 ──
+  // ── Supabase에서 문제 목록 로드 ──
+  async function loadItemsFromDB(category) {
+    document.getElementById('itemList').innerHTML = '<p class="item-empty">불러오는 중...</p>';
+    const { data, error } = await db
+      .from('questions')
+      .select('id, name')
+      .eq('category', category)
+      .order('name');
+    if (error) {
+      document.getElementById('itemList').innerHTML = '<p class="item-empty" style="color:#e53e3e;">불러오기 실패. 새로고침 해주세요.</p>';
+      return;
+    }
+    textItems = data || [];
+    renderItemList();
+  }
+
+  // ── 문제 추가 (관리자) ──
+  async function addItem() {
+    const input = document.getElementById('newItemInput');
+    const val = input.value.trim();
+    if (!val) return;
+    if (textItems.some(i => i.name === val)) {
+      setItemNotice(`"${val}"은(는) 이미 있습니다.`, true);
+      input.select();
+      return;
+    }
+    const { data, error } = await db
+      .from('questions')
+      .insert({ category: selectedCategory, name: val })
+      .select()
+      .single();
+    if (error) { setItemNotice('추가 실패', true); return; }
+    textItems.push(data);
+    textItems.sort((a, b) => a.name.localeCompare(b.name));
+    input.value = '';
+    renderItemList();
+    setItemNotice(`"${val}" 추가됨`, false);
+    input.focus();
+  }
+
+  // ── 문제 삭제 (관리자) ──
+  async function deleteItem(id) {
+    const { error } = await db.from('questions').delete().eq('id', id);
+    if (error) { setItemNotice('삭제 실패', true); return; }
+    textItems = textItems.filter(i => i.id !== id);
+    renderItemList();
+  }
+
+  // ── 전체 삭제 (관리자) ──
+  async function clearAllItems() {
+    if (textItems.length === 0) return;
+    if (!confirm('목록을 전체 삭제할까요?')) return;
+    const { error } = await db.from('questions').delete().eq('category', selectedCategory);
+    if (error) { setItemNotice('삭제 실패', true); return; }
+    textItems = [];
+    renderItemList();
+  }
+
+  // ── 가나다 정렬 (관리자) ──
+  function sortItems() {
+    textItems.sort((a, b) => a.name.localeCompare(b.name));
+    renderItemList();
+    setItemNotice('정렬 완료', false);
+  }
+
+  // ── 일괄 추가 (관리자) ──
+  async function confirmBulk() {
+    const raw = document.getElementById('bulkTextarea').value;
+    const parsed = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+    const existingNames = textItems.map(i => i.name);
+    const newNames = parsed.filter(s => !existingNames.includes(s));
+    if (newNames.length === 0) {
+      setItemNotice('모두 이미 있는 항목입니다.', true);
+      closeBulkModal();
+      return;
+    }
+    const inserts = newNames.map(name => ({ category: selectedCategory, name }));
+    const { data, error } = await db.from('questions').insert(inserts).select();
+    if (error) { setItemNotice('추가 실패', true); return; }
+    textItems = [...textItems, ...data];
+    textItems.sort((a, b) => a.name.localeCompare(b.name));
+    renderItemList();
+    closeBulkModal();
+    setItemNotice(`${newNames.length}개 추가됨`, false);
+  }
+
+  // ── 목록 렌더 ──
   function setItemNotice(msg, isError) {
     const el = document.getElementById('itemNotice');
     el.textContent = msg;
@@ -459,91 +543,61 @@
     if (msg) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
   }
 
-  function addItem() {
-    const input = document.getElementById('newItemInput');
-    const val = input.value.trim();
-    if (!val) return;
-    if (textItems.includes(val)) {
-      setItemNotice(`"${val}" 은(는) 이미 목록에 있습니다.`, true);
-      input.select();
-      return;
+  function renderItemList() {
+    const list = document.getElementById('itemList');
+    if (textItems.length === 0) {
+      list.innerHTML = '<p class="item-empty">문제를 추가해주세요</p>';
+    } else {
+      list.innerHTML = textItems.map((item, i) => `
+        <div class="item-row">
+          <span class="item-index">${i + 1}</span>
+          <span class="item-name">${item.name}</span>
+          ${isAdmin ? `<button class="del-btn" onclick="deleteItem('${item.id}')">✕</button>` : ''}
+        </div>
+      `).join('');
     }
-    textItems.push(val);
-    saveItems(selectedCategory, textItems);
-    input.value = '';
-    renderItemList();
-    setItemNotice(`"${val}" 추가됨`, false);
-    input.focus();
+    document.getElementById('itemCount').textContent = textItems.length > 0 ? `총 ${textItems.length}개` : '';
   }
 
-  function loadDefaultList() {
-    let defaults;
-    try { defaults = JSON.parse(localStorage.getItem(getSavedDefaultKey(selectedCategory))); } catch {}
-    if (!defaults || !defaults.length) defaults = DEFAULT_LISTS[selectedCategory];
-    if (!defaults || !defaults.length) return;
-    if (textItems.length > 0 && !confirm('현재 목록에 기본 목록을 추가할까요?\n(기존 항목은 유지됩니다)')) return;
-    const newItems = defaults.filter(d => !textItems.includes(d));
-    textItems = [...textItems, ...newItems];
-    saveItems(selectedCategory, textItems);
-    renderItemList();
-    setItemNotice(`${newItems.length}개 불러왔습니다.`, false);
-  }
-
-  function clearAllItems() {
-    if (textItems.length === 0) return;
-    if (!confirm('목록을 전체 삭제할까요?')) return;
-    textItems = [];
-    saveItems(selectedCategory, textItems);
-    renderItemList();
-  }
-
-  function openBulkModal() {
-    document.getElementById('bulkTextarea').value = '';
-    document.getElementById('bulkModal').classList.add('open');
-    setTimeout(() => document.getElementById('bulkTextarea').focus(), 100);
-  }
-
-  function closeBulkModal() {
-    document.getElementById('bulkModal').classList.remove('open');
-  }
-
-  function confirmBulk() {
-    const raw = document.getElementById('bulkTextarea').value;
-    const parsed = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
-    const duplicates = parsed.filter(s => textItems.includes(s));
-    const newItems = parsed.filter(s => !textItems.includes(s));
-    if (newItems.length === 0 && duplicates.length > 0) {
-      setItemNotice(`${duplicates.length}개가 이미 목록에 있어 추가되지 않았습니다.`, true);
-      closeBulkModal();
-      return;
+  // ── 관리자 모드 ──
+  function toggleAdmin() {
+    if (isAdmin) {
+      isAdmin = false;
+      document.getElementById('adminLockBtn').textContent = '🔒';
+      document.getElementById('adminLockBtn').classList.remove('active');
+      document.getElementById('adminControls').style.display = 'none';
+      renderItemList();
+    } else {
+      openAdminLogin();
     }
-    textItems = [...textItems, ...newItems];
-    saveItems(selectedCategory, textItems);
-    renderItemList();
-    closeBulkModal();
-    const msg = duplicates.length > 0
-      ? `${newItems.length}개 추가됨 (중복 ${duplicates.length}개 제외)`
-      : `${newItems.length}개 추가됨`;
-    setItemNotice(msg, false);
   }
 
-  function sortItems() {
-    if (textItems.length === 0) return;
-    textItems.sort((a, b) => a.localeCompare(b));
-    saveItems(selectedCategory, textItems);
-    renderItemList();
-    setItemNotice('정렬 완료', false);
+  function openAdminLogin() {
+    document.getElementById('adminPwError').style.display = 'none';
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminModal').classList.add('open');
+    setTimeout(() => document.getElementById('adminPwInput').focus(), 100);
   }
 
-  function getSavedDefaultKey(cat) { return 'saved_default_' + cat; }
-
-  function saveAsDefault() {
-    if (textItems.length === 0) { setItemNotice('저장할 항목이 없습니다.', true); return; }
-    localStorage.setItem(getSavedDefaultKey(selectedCategory), JSON.stringify(textItems));
-    setItemNotice(`${textItems.length}개를 기본 목록으로 저장했습니다.`, false);
-    document.getElementById('defaultListBtn').style.display = '';
+  function closeAdminModal() {
+    document.getElementById('adminModal').classList.remove('open');
   }
 
+  function confirmAdmin() {
+    const pw = document.getElementById('adminPwInput').value;
+    if (pw === ADMIN_PASSWORD) {
+      isAdmin = true;
+      closeAdminModal();
+      document.getElementById('adminLockBtn').textContent = '🔓';
+      document.getElementById('adminLockBtn').classList.add('active');
+      document.getElementById('adminControls').style.display = '';
+      renderItemList();
+    } else {
+      document.getElementById('adminPwError').style.display = '';
+    }
+  }
+
+  // ── 더보기 메뉴 ──
   function toggleMoreMenu(e) {
     e.stopPropagation();
     document.getElementById('moreMenu').classList.toggle('open');
@@ -555,30 +609,18 @@
 
   document.addEventListener('click', closeMoreMenu);
 
-  function deleteItem(idx) {
-    textItems.splice(idx, 1);
-    saveItems(selectedCategory, textItems);
-    renderItemList();
+  // ── 모달 ──
+  function openBulkModal() {
+    document.getElementById('bulkTextarea').value = '';
+    document.getElementById('bulkModal').classList.add('open');
+    setTimeout(() => document.getElementById('bulkTextarea').focus(), 100);
   }
 
-  function renderItemList() {
-    const list = document.getElementById('itemList');
-    if (textItems.length === 0) {
-      list.innerHTML = '<p class="item-empty">문제를 추가해주세요</p>';
-    } else {
-      list.innerHTML = textItems.map((item, i) => `
-        <div class="item-row">
-          <span class="item-index">${i + 1}</span>
-          <span class="item-name">${item}</span>
-          <button class="del-btn" onclick="deleteItem(${i})">✕</button>
-        </div>
-      `).join('');
-    }
-    document.getElementById('itemCount').textContent =
-      textItems.length > 0 ? `총 ${textItems.length}개` : '';
+  function closeBulkModal() {
+    document.getElementById('bulkModal').classList.remove('open');
   }
 
-  // ── 설정 가져오기 ──
+  // ── 설정 ──
   function getSettings() {
     if (categoryType === 'number') {
       const max = parseInt(document.getElementById('totalCount').value) || 30;
@@ -643,7 +685,7 @@
         document.getElementById('notice').textContent = '먼저 실기문제 목록을 추가해주세요.';
         return;
       }
-      pool = textItems.filter(item => !currentPicks.includes(item));
+      pool = textItems.map(i => i.name).filter(n => !currentPicks.includes(n));
     }
 
     if (pool.length === 0) {
@@ -740,184 +782,6 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
-
-  const DEFAULT_LISTS = {
-    '기능해부학': [
-      'Sternocleidomastoid','Scalenus anterior','Scalenus medius','Scalenus posterior',
-      'Splenius capitis','Semispinalis capitis','Semispinalis cervicis',
-      'Trapezius (upper)','Trapezius (middle)','Trapezius (lower)',
-      'Serratus anterior','Rhomboid major','Rhomboid minor',
-      'Deltoid (anterior)','Deltoid (middle)','Deltoid (posterior)',
-      'Pectoralis major','Pectoralis minor','Latissimus dorsi',
-      'Teres major','Teres minor','Subscapularis','Supraspinatus','Infraspinatus',
-      'Coracobrachialis','Biceps brachii','Brachialis','Triceps brachii',
-      'Pronator teres','Pronator quadratus','Supinator',
-      'Flexor carpi radialis','Flexor carpi ulnaris','Palmaris longus',
-      'Extensor carpi radialis longus','Extensor carpi radialis brevis','Extensor carpi ulnaris',
-      'Rectus abdominis','External oblique','Internal oblique','Transversus abdominis',
-      'Quadratus lumborum','Erector spinae','Multifidus',
-      'Iliopsoas','Iliacus','Psoas major',
-      'Gluteus maximus','Gluteus medius','Gluteus minimus','Piriformis',
-      'Rectus femoris','Vastus lateralis','Vastus medialis','Vastus intermedius',
-      'Sartorius','Gracilis','Pectineus',
-      'Adductor longus','Adductor brevis','Adductor magnus',
-      'Biceps femoris','Semitendinosus','Semimembranosus','Popliteus',
-      'Gastrocnemius','Soleus','Plantaris',
-      'Tibialis anterior','Tibialis posterior',
-      'Fibularis longus','Fibularis brevis',
-      'Extensor digitorum longus','Extensor digitorum brevis','Extensor hallucis longus',
-      'Flexor digitorum longus','Flexor digitorum brevis','Flexor hallucis longus'
-    ],
-    '운동치료학': [
-      "Acromioclavicular jt. Anterior Glide",
-      "CMC & IMC jt. Glide",
-      "Digits CMC & IMC jt. Distraction",
-      "Distal Radioulnar it. Dorsal / Volar Glide",
-      "Distal Tibiofibular Articulation Anterior or Posterior Glide",
-      "Elongation of Extrinsic Muscle of the Wrist & Hand : Flexion & Extension Digitorum Muscle",
-      "Elongation of Two-joint Biceps Brachii",
-      "Elongation of Two-joint Hamstring Muscle",
-      "Elongation of Two-joint Long head of the Triceps Brachii",
-      "Elongation of Two-joint Rectus Femoris",
-      "Glenohumeral Anterior Glide",
-      "Glenohumeral Caudal Glide",
-      "Glenohumeral Distraction",
-      "Glenohumeral Elevation",
-      "Glenohumeral External Rotation",
-      "Glenohumeral Posterior Glide",
-      "Hip Anterior Glide",
-      "Hip Distraction of the Weight-Bearing surface Caudal Glide",
-      "Hip Posterior Glide",
-      "Humeroradial Compression",
-      "Humeroradial Distraction",
-      "Humeroradial Dorsal / Volar Glide",
-      "Humeroulnar Distal Glide",
-      "Humeroulnar Distraction",
-      "Humeroulnar Radial Glide",
-      "Humeroulnar Ulnar Glide",
-      "Intertarsal & Tarsometatarsal Dorsal Glide",
-      "Intertarsal & Tarsometatarsal Plantar Glide",
-      "MCP & IP Distraction",
-      "MCP & IP Glide",
-      "Patellofemoral jt. Distal Glide",
-      "Patellofemoral Medial-Lateral Glide",
-      "PNF Contract - Relax",
-      "PNF Hold - Relax",
-      "PNF U/E D2 Extension",
-      "PNF U/E D2 Flexion",
-      "PNF U/E Repeated Contraction",
-      "PNF U/E Reversal of Antagonist",
-      "PNF U/E Rhythmic Initiation",
-      "PNF U/E Rhythmic Stabilization",
-      "PROM Ankle Dorsiflexion",
-      "PROM Ankle Plantarflexion",
-      "PROM Clavical Flexion ( Forward Bending)",
-      "PROM Clavical Lateral Flexion & Rotation ( Side Bending )",
-      "PROM Elbow Flexion & Extension",
-      "PROM Hand : Cupping & Flattening",
-      "PROM Hip & Knee : Flexion & Extension",
-      "PROM Hip Abduction & Adduction",
-      "PROM Hip Extension ( Hyperextension )",
-      "PROM Hip Internal Rotation & External Rotation ( Knee Flexion & Extension )",
-      "PROM Lumbar Extension",
-      "PROM Lumbar Flexion",
-      "PROM Lumbar Rotation",
-      "PROM Scapula : Elevation/ Depression Protraction/ Retraction Upward / Downward rotation",
-      "PROM Shoulder Abduction & Adduction",
-      "PROM Shoulder Extension ( Hyperextension )",
-      "PROM Shoulder Flexion & Extension",
-      "PROM Shoulder Horizontal Abduction & Horizontal Adduction",
-      "PROM Shoulder Internal Rotation & External Rotation",
-      "PROM Subtalar Joint : Inversion & Eversion",
-      "PROM Thumb & Fingers : Flexion & Extension  Abduction & Adduction",
-      "PROM Toes : Flexion & Extension  Abduction & Adduction",
-      "PROM Wrist Flexion & Extension  Radial & Ulnar Deviation",
-      "Proximal Radioulnar jt. Dorsal / Volar Glide",
-      "Proximal Tibiofibular Articulation Anterior Glide",
-      "Radiocarpal jt. Glide",
-      "Resistance EX. Ankle Dorsiflexion & Ankle Plantarflexion",
-      "Resistance EX. Ankle Inversion & Eversion",
-      "Resistance EX. Elbow Flexion & Extension",
-      "Resistance EX. Forearm Pronation & Supination",
-      "Resistance EX. Hip Abduction &Adduction",
-      "Resistance EX. Hip Extension",
-      "Resistance EX. Hip Flexion with Knee flexion",
-      "Resistance EX. Hip Hyperextension",
-      "Resistance EX. Hip Internal Rotatation & External Rotation",
-      "Resistance EX. Horizontal Abduction & Horizontal Adduction",
-      "Resistance Ex. Hyperextension",
-      "Resistance EX. Knee Extension",
-      "Resistance EX. Knee Flexion",
-      "Resistance EX. Motions of the Fingers & Thumb",
-      "Resistance EX. Scapula Elevation & Depression",
-      "Resistance EX. Scapula Protraction & Retraction",
-      "Resistance Ex. Shoulder Abduction",
-      "Resistance Ex. Shoulder Adduction",
-      "Resistance Ex. Shoulder extension",
-      "Resistance Ex. Shoulder Flexion",
-      "Resistance EX. Shoulder Internal & External Rotation",
-      "Resistance EX. Toes Flexion & Extension",
-      "Resistance EX. Wrist Flexion & Extension",
-      "Resistance EX. Wrist Radial & Ulnar Deviation",
-      "S-AROM Ankle Inversion & Eversion",
-      "S-AROM Elbow Flexion & Extension",
-      "S-AROM Fingers: Flexion & Extension",
-      "S-AROM Forearm Pronation & Supination",
-      "S-AROM Hip & Knee : Flexion",
-      "S-AROM Hip Abduction & Adduction",
-      "S-AROM Hip Abduction with External rotation",
-      "S-AROM Shoulder Flexion & Extension",
-      "S-AROM Shoulder Horizontal Abduction & Horizontal Adduction",
-      "S-AROM Shoulder Rotation",
-      "S-AROM Thumb Flexion with Oppopsition & Extension with Reposition",
-      "S-AROM Wand Ex. Shoulder",
-      "S-AROM Wrist Flexion & Extension Radial & Ulnar Deviation",
-      "Scapulothoracic Mobilization",
-      "Specific Carpal Glide",
-      "Sternoclavicular it. Posterior Glide & Superior Glide",
-      "Sternoclavicular jt. Anterior Glide & Caudal Glide",
-      "Stretching Ankle Dorsiflexion",
-      "Stretching Ankle Inversion & Eversion",
-      "Stretching Ankle Plantarflexion",
-      "Stretching Digits MCP jt. Flexion & Extension / Abduction & Adduction",
-      "Stretching Elbow Extension",
-      "Stretching End-Range Knee Extension",
-      "Stretching Extrinsic & Intrinsic Muscle of Fingers",
-      "Stretching Forearm Pronation & Supination",
-      "Stretching Hip Abduction",
-      "Stretching Hip Adduction",
-      "Stretching Hip Extension",
-      "Stretching Hip Extension with Knee Flexion",
-      "Stretching Hip External Rotation",
-      "Stretching Hip Flexion",
-      "Stretching Hip Flexion with Knee Extension",
-      "Stretching Hip Internal Rotation",
-      "Stretching Horizontal Abduction",
-      "Stretching Knee Extension",
-      "Stretching Knee Flexion",
-      "Stretching PIP & DIP it. Flexion & Extension",
-      "Stretching Radial Deviation",
-      "Stretching Shoulder Abduction",
-      "Stretching Shoulder External Rotation",
-      "Stretching Shoulder Flexion",
-      "Stretching Shoulder Hyperextension",
-      "Stretching Shoulder Internal Rotation",
-      "Stretching Thumb CMC jt. Flexion & Extension / Abduction & Adduction",
-      "Stretching Ulnar Deviation",
-      "Stretching Wrist Extension",
-      "Stretching Wrist Flexion",
-      "Subtalar Distraction",
-      "Subtalar Medial or Lateral Glide",
-      "Talocrural Distraction",
-      "Talocrural Dorsal Glide",
-      "Talocrural Ventral Glide",
-      "Thumb CMC jt. Distraction",
-      "Thumb CMC jt. Glide",
-      "Tibiofemoral Anterior Glide",
-      "Tibiofemoral Distraction Long-Axis Traction",
-      "Tibiofemoral Posterior Glide"
-    ]
-  };
 
   let itemListOpen = true;
   function toggleItemList() {
