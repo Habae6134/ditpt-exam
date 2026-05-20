@@ -306,6 +306,9 @@
         <button class="action-btn" onclick="openBulkModal()">📋 여러 개 붙여넣기</button>
         <button class="action-btn" id="defaultListBtn" onclick="loadDefaultList()" style="display:none;">⭐ 기본 목록 불러오기</button>
         <button class="action-btn" onclick="sortItems()">🔤 가나다 정렬</button>
+        <button class="action-btn" onclick="exportItems()" style="border-color:#48bb78; color:#276749;">💾 백업 저장</button>
+        <button class="action-btn" onclick="document.getElementById('importFileInput').click()">📂 백업 불러오기</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importItems(event)" />
         <button class="action-btn danger" onclick="clearAllItems()">✕ 전체 삭제</button>
       </div>
       <div class="item-add-row">
@@ -509,6 +512,40 @@
     saveItems(selectedCategory, textItems);
     renderItemList();
     setItemNotice('정렬 완료', false);
+  }
+
+  function exportItems() {
+    if (textItems.length === 0) { setItemNotice('저장할 항목이 없습니다.', true); return; }
+    const data = { category: selectedCategory, items: textItems, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${selectedCategory}_문제목록_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    setItemNotice(`${textItems.length}개 항목을 파일로 저장했습니다.`, false);
+  }
+
+  function importItems(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        const imported = Array.isArray(data) ? data : (data.items || []);
+        if (!Array.isArray(imported) || imported.length === 0) throw new Error('항목 없음');
+        const newItems = imported.filter(s => typeof s === 'string' && s.trim() && !textItems.includes(s.trim())).map(s => s.trim());
+        if (newItems.length === 0) { setItemNotice('모든 항목이 이미 목록에 있습니다.', true); return; }
+        if (!confirm(`${newItems.length}개 항목을 불러올까요?`)) return;
+        textItems = [...textItems, ...newItems];
+        saveItems(selectedCategory, textItems);
+        renderItemList();
+        setItemNotice(`${newItems.length}개 항목을 불러왔습니다.`, false);
+      } catch { setItemNotice('파일을 읽을 수 없습니다. JSON 형식인지 확인해주세요.', true); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
   }
 
   function deleteItem(idx) {
