@@ -218,14 +218,28 @@
     .btn-cancel { background: #e2e8f0; color: #4a5568; }
     .btn-cancel:hover { background: #cbd5e0; }
 
-    .list-action-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-    .action-btn {
-      padding: 7px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0;
-      background: white; color: #4a5568; font-size: 0.8rem; cursor: pointer;
+    .more-wrap { position: relative; margin-bottom: 12px; display: flex; justify-content: flex-end; }
+    .more-btn {
+      background: white; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 6px 12px; font-size: 1.1rem; cursor: pointer; color: #4a5568;
+      line-height: 1;
     }
-    .action-btn:hover { background: #f7fafc; border-color: #cbd5e0; }
-    .action-btn.danger { border-color: #fc8181; color: #e53e3e; }
-    .action-btn.danger:hover { background: #fff5f5; }
+    .more-btn:hover { background: #f7fafc; }
+    .more-menu {
+      display: none; position: absolute; top: calc(100% + 6px); right: 0;
+      background: white; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+      border: 1px solid #e2e8f0; min-width: 200px; z-index: 50; overflow: hidden;
+    }
+    .more-menu.open { display: block; }
+    .more-menu-item {
+      width: 100%; padding: 12px 16px; border: none; background: white;
+      text-align: left; font-size: 0.9rem; color: #2d3748; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .more-menu-item:hover { background: #f7fafc; }
+    .more-menu-item.danger { color: #e53e3e; }
+    .more-menu-item.danger:hover { background: #fff5f5; }
+    .more-menu-divider { height: 1px; background: #e2e8f0; margin: 4px 0; }
 
     @media (max-width: 400px) {
       .slot { width: 65px; height: 65px; font-size: 1.3rem; }
@@ -302,14 +316,17 @@
       <span id="listToggleIcon">▲</span>
     </div>
     <div id="itemListBody">
-      <div class="list-action-row" style="margin-top:14px;">
-        <button class="action-btn" onclick="openBulkModal()">📋 여러 개 붙여넣기</button>
-        <button class="action-btn" id="defaultListBtn" onclick="loadDefaultList()" style="display:none;">⭐ 기본 목록 불러오기</button>
-        <button class="action-btn" onclick="sortItems()">🔤 가나다 정렬</button>
-        <button class="action-btn" onclick="exportItems()" style="border-color:#48bb78; color:#276749;">💾 백업 저장</button>
-        <button class="action-btn" onclick="document.getElementById('importFileInput').click()">📂 백업 불러오기</button>
-        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importItems(event)" />
-        <button class="action-btn danger" onclick="clearAllItems()">✕ 전체 삭제</button>
+      <div class="more-wrap" style="margin-top:14px;">
+        <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
+        <div class="more-menu" id="moreMenu">
+          <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
+          <button class="more-menu-item" id="defaultListBtn" onclick="loadDefaultList(); closeMoreMenu()" style="display:none;">⭐ 기본 목록 불러오기</button>
+          <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
+          <div class="more-menu-divider"></div>
+          <button class="more-menu-item" onclick="saveAsDefault(); closeMoreMenu()">💾 현재 목록을 기본으로 저장</button>
+          <div class="more-menu-divider"></div>
+          <button class="more-menu-item danger" onclick="clearAllItems(); closeMoreMenu()">✕ 전체 삭제</button>
+        </div>
       </div>
       <div class="item-add-row">
         <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
@@ -415,7 +432,8 @@
     if (type === 'text') {
       textItems = loadItems(name);
       renderItemList();
-      const hasDefault = DEFAULT_LISTS[name] && DEFAULT_LISTS[name].length > 0;
+      let savedDefault; try { savedDefault = JSON.parse(localStorage.getItem(getSavedDefaultKey(name))); } catch {}
+      const hasDefault = (savedDefault && savedDefault.length) || (DEFAULT_LISTS[name] && DEFAULT_LISTS[name].length > 0);
       document.getElementById('defaultListBtn').style.display = hasDefault ? '' : 'none';
     }
 
@@ -459,13 +477,16 @@
   }
 
   function loadDefaultList() {
-    const defaults = DEFAULT_LISTS[selectedCategory];
-    if (!defaults || defaults.length === 0) return;
+    let defaults;
+    try { defaults = JSON.parse(localStorage.getItem(getSavedDefaultKey(selectedCategory))); } catch {}
+    if (!defaults || !defaults.length) defaults = DEFAULT_LISTS[selectedCategory];
+    if (!defaults || !defaults.length) return;
     if (textItems.length > 0 && !confirm('현재 목록에 기본 목록을 추가할까요?\n(기존 항목은 유지됩니다)')) return;
     const newItems = defaults.filter(d => !textItems.includes(d));
     textItems = [...textItems, ...newItems];
     saveItems(selectedCategory, textItems);
     renderItemList();
+    setItemNotice(`${newItems.length}개 불러왔습니다.`, false);
   }
 
   function clearAllItems() {
@@ -514,39 +535,25 @@
     setItemNotice('정렬 완료', false);
   }
 
-  function exportItems() {
+  function getSavedDefaultKey(cat) { return 'saved_default_' + cat; }
+
+  function saveAsDefault() {
     if (textItems.length === 0) { setItemNotice('저장할 항목이 없습니다.', true); return; }
-    const data = { category: selectedCategory, items: textItems, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${selectedCategory}_문제목록_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    setItemNotice(`${textItems.length}개 항목을 파일로 저장했습니다.`, false);
+    localStorage.setItem(getSavedDefaultKey(selectedCategory), JSON.stringify(textItems));
+    setItemNotice(`${textItems.length}개를 기본 목록으로 저장했습니다.`, false);
+    document.getElementById('defaultListBtn').style.display = '';
   }
 
-  function importItems(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const data = JSON.parse(e.target.result);
-        const imported = Array.isArray(data) ? data : (data.items || []);
-        if (!Array.isArray(imported) || imported.length === 0) throw new Error('항목 없음');
-        const newItems = imported.filter(s => typeof s === 'string' && s.trim() && !textItems.includes(s.trim())).map(s => s.trim());
-        if (newItems.length === 0) { setItemNotice('모든 항목이 이미 목록에 있습니다.', true); return; }
-        if (!confirm(`${newItems.length}개 항목을 불러올까요?`)) return;
-        textItems = [...textItems, ...newItems];
-        saveItems(selectedCategory, textItems);
-        renderItemList();
-        setItemNotice(`${newItems.length}개 항목을 불러왔습니다.`, false);
-      } catch { setItemNotice('파일을 읽을 수 없습니다. JSON 형식인지 확인해주세요.', true); }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+  function toggleMoreMenu(e) {
+    e.stopPropagation();
+    document.getElementById('moreMenu').classList.toggle('open');
   }
+
+  function closeMoreMenu() {
+    document.getElementById('moreMenu').classList.remove('open');
+  }
+
+  document.addEventListener('click', closeMoreMenu);
 
   function deleteItem(idx) {
     textItems.splice(idx, 1);
