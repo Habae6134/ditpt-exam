@@ -325,6 +325,7 @@
         <div class="more-wrap" style="margin-top:14px;">
           <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
           <div class="more-menu" id="moreMenu">
+            <button class="more-menu-item" onclick="reloadFromDB(); closeMoreMenu()">🔄 기본항목 불러오기</button>
             <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
             <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
             <div id="moreMenuSlots"></div>
@@ -584,6 +585,7 @@
           <span>${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}</span>
         </button>
         <button onclick="promptRenameSlot(${s.slot})" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#718096; white-space:nowrap;">✏️ 이름</button>
+        <button onclick="clearSlot(${s.slot})" style="background:none; border:1.5px solid #fc8181; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#e53e3e; white-space:nowrap;">🗑️</button>
       </div>
     `).join('');
 
@@ -629,6 +631,24 @@
       .eq('category', selectedCategory).eq('slot', slotNum);
     if (!error && s) s.name = newName.trim();
     renderSavedSlots();
+  }
+
+  async function clearSlot(slotNum) {
+    const s = savedSlots.find(s => s.slot === slotNum);
+    if (!s || s.items.length === 0) { setItemNotice('이미 비어있는 슬롯입니다.', true); return; }
+    if (!confirm(`"${s.name}" 슬롯 내용을 삭제할까요?`)) return;
+    const { error } = await db.from('saved_lists')
+      .update({ items: [] })
+      .eq('category', selectedCategory).eq('slot', slotNum);
+    if (error) { setItemNotice('삭제 실패', true); return; }
+    s.items = [];
+    renderSavedSlots();
+    setItemNotice(`"${s.name}" 슬롯이 비워졌습니다.`, false);
+  }
+
+  async function reloadFromDB() {
+    await loadItemsFromDB(selectedCategory);
+    setItemNotice('기본항목을 새로 불러왔습니다.', false);
   }
 
   async function loadFromSlot(slotNum) {
