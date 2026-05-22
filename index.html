@@ -173,6 +173,18 @@
     }
     .reset-btn:hover { background: #fff5f5; }
 
+    .export-btn {
+      padding: 6px 10px; font-size: 0.78rem; font-weight: bold;
+      border: 1px solid #cbd5e0; border-radius: 6px; background: white;
+      color: #4a5568; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .export-btn:hover { background: #f7fafc; border-color: #a0aec0; color: #2d3748; }
+    .export-btn.csv { border-color: #38a169; color: #38a169; }
+    .export-btn.csv:hover { background: #f0fff4; }
+    .export-btn.txt { border-color: #4299e1; color: #4299e1; }
+    .export-btn.txt:hover { background: #ebf8ff; }
+
     .notice { font-size: 0.78rem; color: #a0aec0; text-align: center; margin-top: 6px; }
 
     /* ── 기록 ── */
@@ -484,7 +496,13 @@
 
   <!-- 기록 카드 -->
   <div class="card history-card">
-    <h2>📋 뽑기 기록</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+      <h2 style="margin:0; font-size:1.2rem; display:flex; align-items:center; gap:6px;">📋 뽑기 기록</h2>
+      <div style="display:flex; gap:6px;">
+        <button class="export-btn csv" onclick="exportToCSV()" title="엑셀 CSV 파일로 다운로드">📥 엑셀(CSV)</button>
+        <button class="export-btn txt" onclick="exportToTXT()" title="메모장 TXT 파일로 다운로드">📥 텍스트</button>
+      </div>
+    </div>
     <div class="card-body" id="historyList">
       <p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 10px 0;">아직 기록이 없습니다.</p>
     </div>
@@ -529,8 +547,12 @@
     currentPicks = [];
     drawHistory = [];
     studentQueue = [];
-    if (typeof updateRosterStatus === 'function') updateRosterStatus();
     clearStudentName();
+    
+    // 로컬 스토리지 백업 데이터가 있을 시 복구 시도
+    loadStateFromLocalStorage();
+
+    if (typeof updateRosterStatus === 'function') updateRosterStatus();
     renderSlots();
     renderHistory();
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
@@ -800,6 +822,7 @@
       clearStudentName();
     }
     updateRosterStatus();
+    saveStateToLocalStorage(); // 변경된 대기열 백업
     closeRosterModal();
   }
 
@@ -981,7 +1004,7 @@
     console.log("[디버그] nextStudent 실행됨. 다음 학생 버튼 클릭 시점 대기열:", studentQueue ? [...studentQueue] : null, "마지막 학생 여부(isLast):", isLast);
 
     if (currentPicks.length > 0) {
-      drawHistory.push({ label, picks: [...currentPicks] });
+      drawHistory.push({ label, picks: [...currentPicks], timestamp: getFormattedTime() });
       renderHistory();
     }
 
@@ -1008,6 +1031,7 @@
     if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
     if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
+    saveStateToLocalStorage(); // 다음 학생으로 진행 시 변경사항 백업
 
     if (isLast) {
       // 조금 딜레이를 주어 화면 상태가 먼저 초기화되거나 렌더링된 후 자연스럽게 알림이 뜨도록 합니다.
@@ -1017,6 +1041,17 @@
     }
   }
 
+  function getFormattedTime() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const sec = String(now.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${sec}`;
+  }
+
   function renderHistory() {
     const list = document.getElementById('historyList');
     if (drawHistory.length === 0) {
@@ -1024,14 +1059,125 @@
       return;
     }
     list.innerHTML = drawHistory.map(h => `
-      <div class="history-row">
-        <span class="student-tag">${h.label}</span>
-        <div class="history-picks">
-          ${h.picks.map(p => `<span class="pick-badge">${p}</span>`).join('')}
+      <div class="history-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:1;">
+          <span class="student-tag">${h.label}</span>
+          <div class="history-picks" style="display:flex; gap:6px; flex-wrap:wrap;">
+            ${h.picks.map(p => `<span class="pick-badge">${p}</span>`).join('')}
+          </div>
         </div>
+        <span style="font-size:0.75rem; color:#a0aec0; white-space:nowrap; margin-left:10px;" title="뽑은 시간: ${h.timestamp || ''}">
+          ${h.timestamp ? h.timestamp.split(' ')[1] : ''}
+        </span>
       </div>
     `).join('');
     list.scrollTop = list.scrollHeight;
+  }
+
+  function exportToCSV() {
+    if (!drawHistory || drawHistory.length === 0) {
+      alert("다운로드할 뽑기 기록이 없습니다.");
+      return;
+    }
+    let csvContent = "\uFEFF"; // 한글 깨짐 방지용 BOM
+    csvContent += "순번,학생 이름/번호,뽑은 시간,뽑힌 문제 목록\n";
+    drawHistory.forEach((h, index) => {
+      const row = [
+        index + 1,
+        `"${h.label.replace(/"/g, '""')}"`,
+        `"${h.timestamp || ''}"`,
+        `"${h.picks.join(', ').replace(/"/g, '""')}"`
+      ].join(",");
+      csvContent += row + "\n";
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `실기시험_뽑기기록_${selectedCategory || '과목'}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function exportToTXT() {
+    if (!drawHistory || drawHistory.length === 0) {
+      alert("다운로드할 뽑기 기록이 없습니다.");
+      return;
+    }
+    let txtContent = `=========================================\n`;
+    txtContent += `🎓 실기시험 제비뽑기 기록 - [${selectedCategory || '과목'}]\n`;
+    txtContent += `출력 일시: ${new Date().toLocaleString()}\n`;
+    txtContent += `=========================================\n\n`;
+    drawHistory.forEach((h, index) => {
+      txtContent += `${index + 1}. 학생명/번호: ${h.label}\n`;
+      txtContent += `   - 뽑은 시간: ${h.timestamp || '기록 없음'}\n`;
+      txtContent += `   - 뽑힌 문제: ${h.picks.join(', ')}\n`;
+      txtContent += `-----------------------------------------\n`;
+    });
+    
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `실기시험_뽑기기록_${selectedCategory || '과목'}_${new Date().toISOString().slice(0,10)}.txt`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function saveStateToLocalStorage() {
+    if (!selectedCategory) return;
+    try {
+      localStorage.setItem(`ditpt_history_${selectedCategory}`, JSON.stringify(drawHistory || []));
+      localStorage.setItem(`ditpt_queue_${selectedCategory}`, JSON.stringify(studentQueue || []));
+      console.log(`[백업] 로컬스토리지에 상태 백업 완료. (과목: ${selectedCategory})`);
+    } catch (e) {
+      console.error("[백업] 로컬스토리지 백업 실패:", e);
+    }
+  }
+
+  function loadStateFromLocalStorage() {
+    if (!selectedCategory) return;
+    try {
+      const savedHistory = localStorage.getItem(`ditpt_history_${selectedCategory}`);
+      const savedQueue = localStorage.getItem(`ditpt_queue_${selectedCategory}`);
+      
+      if (savedHistory) {
+        drawHistory = JSON.parse(savedHistory);
+        console.log(`[복구] drawHistory 복구 완료. (${drawHistory.length}개)`);
+      }
+      
+      if (savedQueue) {
+        studentQueue = JSON.parse(savedQueue);
+        console.log(`[복구] studentQueue 복구 완료. (${studentQueue.length}명)`);
+        
+        // 큐의 첫 번째 학생을 화면에 설정
+        if (studentQueue.length > 0) {
+          const stNum = document.getElementById('studentNameNumber');
+          const stText = document.getElementById('studentNameText');
+          if (stNum) stNum.value = studentQueue[0];
+          if (stText) stText.value = studentQueue[0];
+        }
+      }
+      
+      updateRosterStatus();
+      renderHistory();
+    } catch (e) {
+      console.error("[복구] 로컬스토리지 복구 실패:", e);
+    }
+  }
+
+  function clearLocalStorageForCategory() {
+    if (!selectedCategory) return;
+    try {
+      localStorage.removeItem(`ditpt_history_${selectedCategory}`);
+      localStorage.removeItem(`ditpt_queue_${selectedCategory}`);
+      console.log(`[백업 초기화] 로컬스토리지에서 이력 삭제 완료. (과목: ${selectedCategory})`);
+    } catch (e) {
+      console.error("[백업 초기화] 실패:", e);
+    }
   }
 
   function resetAll() {
@@ -1050,6 +1196,9 @@
     if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
     renderHistory();
+    
+    // 전체 초기화 시 해당 과목의 로컬스토리지 백업 데이터도 깨끗이 비워줌
+    clearLocalStorageForCategory();
   }
 
   function goBack() {
@@ -1062,6 +1211,10 @@
         drawHistory = [];
         currentPicks = [];
         studentQueue = [];
+        
+        // 과목 선택으로 아웃될 때 백업 비우기
+        clearLocalStorageForCategory();
+        
         if (typeof updateRosterStatus === 'function') {
           try { updateRosterStatus(); } catch(e) {}
         }
