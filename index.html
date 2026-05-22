@@ -158,6 +158,13 @@
       color: #38a169; cursor: pointer; transition: all 0.2s;
     }
     .next-btn:hover { background: #f0fff4; }
+    .next-btn.last-student {
+      border: 2px solid #e53e3e;
+      color: #e53e3e;
+    }
+    .next-btn.last-student:hover {
+      background: #fff5f5;
+    }
 
     .reset-btn {
       width: 100%; padding: 10px; margin-top: 10px; font-size: 0.85rem;
@@ -939,11 +946,24 @@
     const nextBtn = document.getElementById('nextBtn');
     const notice = document.getElementById('notice');
 
+    console.log("[디버그] updateUI 실행됨. 현재 대기열(studentQueue):", studentQueue ? [...studentQueue] : null, "대기열 크기:", studentQueue ? studentQueue.length : 0);
+
     if (done) {
       if(btnSingle) { btnSingle.className = 'draw-btn disabled'; btnSingle.onclick = null; }
       if(btnAll) { btnAll.className = 'draw-btn disabled'; btnAll.onclick = null; }
-      nextBtn.style.display = 'block';
-      notice.textContent = `${count}개 뽑기 완료! 다음 학생 버튼을 눌러주세요.`;
+      
+      // 대기열의 마지막 학생인지 판별 (studentQueue.length === 1 일 때가 마지막 학생)
+      if (studentQueue && studentQueue.length === 1) {
+        nextBtn.textContent = '🏁 시험 종료 (기록 완료)';
+        nextBtn.className = 'next-btn last-student';
+        nextBtn.style.display = 'block';
+        notice.innerHTML = `<span style="color:#e53e3e; font-weight:bold; font-size:0.85rem;">🎉 ${count}개 뽑기 완료! 출석부의 마지막 학생입니다.</span>`;
+      } else {
+        nextBtn.textContent = '✅ 다음 학생';
+        nextBtn.className = 'next-btn';
+        nextBtn.style.display = 'block';
+        notice.textContent = `${count}개 뽑기 완료! 다음 학생 버튼을 눌러주세요.`;
+      }
     } else {
       notice.textContent = `${currentPicks.length} / ${count} 완료`;
     }
@@ -956,6 +976,9 @@
   function nextStudent() {
     const name = getStudentName();
     const label = name || `학생 ${drawHistory.length + 1}`;
+    const isLast = studentQueue && studentQueue.length === 1; // 마지막 학생 여부 판별
+
+    console.log("[디버그] nextStudent 실행됨. 다음 학생 버튼 클릭 시점 대기열:", studentQueue ? [...studentQueue] : null, "마지막 학생 여부(isLast):", isLast);
 
     if (currentPicks.length > 0) {
       drawHistory.push({ label, picks: [...currentPicks] });
@@ -985,6 +1008,13 @@
     if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
     if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
+
+    if (isLast) {
+      // 조금 딜레이를 주어 화면 상태가 먼저 초기화되거나 렌더링된 후 자연스럽게 알림이 뜨도록 합니다.
+      setTimeout(() => {
+        alert('🎉 출석부 명단의 모든 학생이 제비뽑기를 완료했습니다!\n하단의 뽑기 기록을 확인하시거나 새로운 과목을 선택하실 수 있습니다.');
+      }, 100);
+    }
   }
 
   function renderHistory() {
