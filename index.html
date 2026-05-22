@@ -147,6 +147,7 @@
       border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
     }
     .draw-btn.active { background: linear-gradient(135deg, #3182ce, #2b6cb0); color: white; box-shadow: 0 4px 14px rgba(49,130,206,0.4); }
+    .draw-btn.active.all { background: linear-gradient(135deg, #48bb78, #38a169); box-shadow: 0 4px 14px rgba(72,187,120,0.4); }
     .draw-btn.active:hover { transform: translateY(-2px); }
     .draw-btn.active:active { transform: translateY(0); }
     .draw-btn.disabled { background: #e2e8f0; color: #a0aec0; cursor: not-allowed; }
@@ -309,8 +310,15 @@
       </div>
     </div>
     <div>
-      <label>학생 이름/번호 (선택)</label>
-      <input type="text" id="studentNameNumber" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px;" />
+      <label>학생 이름/번호</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="studentNameNumber" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px; flex:1;" />
+        <button class="add-btn" onclick="openRosterModal()" style="padding: 10px 14px;">출석부</button>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 6px;">
+        <p id="rosterStatusNum" style="font-size: 0.8rem; color: #38a169; font-weight: bold; display: none; margin: 0;"></p>
+        <button id="rosterViewBtnNum" onclick="openRosterViewModal()" style="display: none; background: none; border: none; color: #4299e1; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-decoration: underline; padding: 2px 4px;">명단 전체보기</button>
+      </div>
     </div>
   </div>
 
@@ -388,6 +396,50 @@
     </div>
   </div>
 
+  <!-- 출석부 입력 모달 -->
+  <div class="modal-overlay" id="rosterModal">
+    <div class="modal">
+      <h3>📋 출석부 명단 붙여넣기</h3>
+      <p>학생 이름(또는 번호)을 한 줄에 한 명씩 입력하거나 엑셀/워드에서 복사하여 붙여넣으세요.</p>
+      <textarea id="rosterTextarea" placeholder="예시:
+홍길동
+김철수
+이영희"></textarea>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeRosterModal()">취소</button>
+        <button class="btn-confirm" onclick="confirmRoster()">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 출석부 대기열 보기 모달 -->
+  <div class="modal-overlay" id="rosterViewModal">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0;">📋 대기열 현황</h3>
+        <button onclick="closeRosterViewModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#a0aec0;">✕</button>
+      </div>
+      
+      <div style="background:#ebf8ff; border-radius:8px; padding:12px; margin-bottom:14px; border:1px solid #bee3f8;">
+        <p style="font-size:0.85rem; color:#2b6cb0; margin-bottom:4px; font-weight:bold;">현재 진행 중</p>
+        <div id="rosterViewCurrent" style="font-size:1.1rem; color:#2c5282; font-weight:bold;">-</div>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px; padding-bottom:6px; border-bottom:2px solid #e2e8f0;">
+        <p style="font-size:0.9rem; color:#4a5568; font-weight:bold; margin:0;">대기 명단</p>
+        <p id="rosterViewCount" style="font-size:0.8rem; color:#718096; margin:0;">남은 인원: 0명</p>
+      </div>
+      
+      <div id="rosterViewList" style="max-height:220px; overflow-y:auto; padding-right:4px;">
+        <!-- 리스트 아이템들이 여기에 들어감 -->
+      </div>
+      
+      <div class="modal-btns" style="margin-top:16px;">
+        <button class="btn-cancel" onclick="closeRosterViewModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 텍스트 모드 설정 -->
   <div class="card" id="cardTextDrawSettings" style="display:none;">
     <h2>⚙️ 설정</h2>
@@ -397,8 +449,15 @@
         <input type="number" id="drawCountText" value="3" min="1" max="10" />
       </div>
       <div>
-        <label>학생 이름/번호 (선택)</label>
-        <input type="text" id="studentNameText" placeholder="예: 홍길동" style="text-align:left; padding-left:12px;" />
+        <label>학생 이름/번호</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="studentNameText" placeholder="예: 홍길동" style="text-align:left; padding-left:12px; flex:1;" />
+          <button class="add-btn" onclick="openRosterModal()" style="padding: 10px 14px;">출석부</button>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 6px;">
+          <p id="rosterStatusText" style="font-size: 0.8rem; color: #38a169; font-weight: bold; display: none; margin: 0;"></p>
+          <button id="rosterViewBtnText" onclick="openRosterViewModal()" style="display: none; background: none; border: none; color: #4299e1; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-decoration: underline; padding: 2px 4px;">명단 전체보기</button>
+        </div>
       </div>
     </div>
   </div>
@@ -408,7 +467,10 @@
     <div class="student-label" id="currentStudentLabel">현재 학생: —</div>
     <div class="slots" id="slotsNumber"></div>
     <div class="text-slots" id="slotsText" style="display:none;"></div>
-    <button class="draw-btn active" id="drawBtn" onclick="draw()">🎯 뽑기</button>
+    <div style="display:flex; gap:10px; width:100%;">
+      <button class="draw-btn active" id="drawBtnSingle" onclick="draw()">🎯 1개씩 뽑기</button>
+      <button class="draw-btn active all" id="drawBtnAll" onclick="drawAll()">🎯 한 번에 뽑기</button>
+    </div>
     <button class="next-btn" id="nextBtn" onclick="nextStudent()" style="display:none;">✅ 다음 학생</button>
     <p class="notice" id="notice"></p>
   </div>
@@ -433,11 +495,12 @@
   );
 
   let currentPicks = [];
-  let history = [];
+  let drawHistory = [];
   let selectedCategory = '';
   let categoryType = 'number';
   let textItems = []; // [{id, name}]
   let savedSlots = []; // [{slot, name, items}]
+  let studentQueue = []; // 출석부 대기열
 
   // ── 카테고리 선택 ──
   async function selectCategory(name, type) {
@@ -457,15 +520,19 @@
     }
 
     currentPicks = [];
-    history = [];
+    drawHistory = [];
+    studentQueue = [];
+    if (typeof updateRosterStatus === 'function') updateRosterStatus();
+    clearStudentName();
     renderSlots();
     renderHistory();
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
     document.getElementById('notice').textContent = '';
     document.getElementById('nextBtn').style.display = 'none';
-    const btn = document.getElementById('drawBtn');
-    btn.className = 'draw-btn active';
-    btn.onclick = draw;
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
+    if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+    if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
 
     showScreen('screenDraw');
   }
@@ -705,6 +772,77 @@
     document.getElementById('bulkModal').classList.remove('open');
   }
 
+  // ── 출석부 명단 (Roster) ──
+  function openRosterModal() {
+    document.getElementById('rosterTextarea').value = studentQueue.join('\n');
+    document.getElementById('rosterModal').classList.add('open');
+    setTimeout(() => document.getElementById('rosterTextarea').focus(), 100);
+  }
+
+  function closeRosterModal() {
+    document.getElementById('rosterModal').classList.remove('open');
+  }
+
+  function confirmRoster() {
+    const raw = document.getElementById('rosterTextarea').value;
+    studentQueue = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+    if (studentQueue.length > 0) {
+      document.getElementById('studentNameNumber').value = studentQueue[0];
+      document.getElementById('studentNameText').value = studentQueue[0];
+    } else {
+      clearStudentName();
+    }
+    updateRosterStatus();
+    closeRosterModal();
+  }
+
+  function updateRosterStatus() {
+    const msg = studentQueue.length > 0 
+      ? `대기열: ${studentQueue.length}명 남음 (다음: ${studentQueue.length > 1 ? studentQueue[1] : '없음'})` 
+      : '';
+    const isVisible = studentQueue.length > 0;
+    
+    const stNum = document.getElementById('rosterStatusNum');
+    const btnNum = document.getElementById('rosterViewBtnNum');
+    if (stNum) {
+      stNum.style.display = isVisible ? 'block' : 'none';
+      stNum.textContent = msg;
+    }
+    if (btnNum) btnNum.style.display = isVisible ? 'block' : 'none';
+
+    const stText = document.getElementById('rosterStatusText');
+    const btnText = document.getElementById('rosterViewBtnText');
+    if (stText) {
+      stText.style.display = isVisible ? 'block' : 'none';
+      stText.textContent = msg;
+    }
+    if (btnText) btnText.style.display = isVisible ? 'block' : 'none';
+  }
+
+  function openRosterViewModal() {
+    const currentName = getStudentName() || '없음';
+    document.getElementById('rosterViewCurrent').textContent = currentName;
+    document.getElementById('rosterViewCount').textContent = `남은 인원: ${studentQueue.length}명`;
+    
+    const listContainer = document.getElementById('rosterViewList');
+    if (studentQueue.length === 0) {
+      listContainer.innerHTML = '<p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 20px 0;">대기열이 비어 있습니다.</p>';
+    } else {
+      listContainer.innerHTML = studentQueue.map((name, idx) => `
+        <div style="padding:10px 0; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px;">
+          <span style="font-size:0.8rem; color:#a0aec0; width:24px; text-align:right;">${idx + 1}</span>
+          <span style="font-size:0.95rem; color:#2d3748; font-weight:bold;">${name}</span>
+        </div>
+      `).join('');
+    }
+    
+    document.getElementById('rosterViewModal').classList.add('open');
+  }
+
+  function closeRosterViewModal() {
+    document.getElementById('rosterViewModal').classList.remove('open');
+  }
+
   // ── 설정 ──
   function getSettings() {
     if (categoryType === 'number') {
@@ -784,16 +922,26 @@
     updateUI();
   }
 
+  function drawAll() {
+    const { count } = getSettings();
+    let prevLen = -1;
+    while (currentPicks.length < count && currentPicks.length !== prevLen) {
+      prevLen = currentPicks.length;
+      draw();
+    }
+  }
+
   function updateUI() {
     const { count } = getSettings();
     const done = currentPicks.length >= count;
-    const btn = document.getElementById('drawBtn');
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
     const nextBtn = document.getElementById('nextBtn');
     const notice = document.getElementById('notice');
 
     if (done) {
-      btn.className = 'draw-btn disabled';
-      btn.onclick = null;
+      if(btnSingle) { btnSingle.className = 'draw-btn disabled'; btnSingle.onclick = null; }
+      if(btnAll) { btnAll.className = 'draw-btn disabled'; btnAll.onclick = null; }
       nextBtn.style.display = 'block';
       notice.textContent = `${count}개 뽑기 완료! 다음 학생 버튼을 눌러주세요.`;
     } else {
@@ -801,38 +949,51 @@
     }
 
     const name = getStudentName();
-    const label = name || `학생 ${history.length + 1}`;
+    const label = name || `학생 ${drawHistory.length + 1}`;
     document.getElementById('currentStudentLabel').textContent = `현재: ${label}`;
   }
 
   function nextStudent() {
     const name = getStudentName();
-    const label = name || `학생 ${history.length + 1}`;
+    const label = name || `학생 ${drawHistory.length + 1}`;
 
     if (currentPicks.length > 0) {
-      history.push({ label, picks: [...currentPicks] });
+      drawHistory.push({ label, picks: [...currentPicks] });
       renderHistory();
     }
 
+    if (studentQueue.length > 0) {
+      studentQueue.shift();
+      if (studentQueue.length > 0) {
+        document.getElementById('studentNameNumber').value = studentQueue[0];
+        document.getElementById('studentNameText').value = studentQueue[0];
+      } else {
+        clearStudentName();
+      }
+      updateRosterStatus();
+    } else {
+      clearStudentName();
+    }
+
     currentPicks = [];
-    clearStudentName();
     document.getElementById('nextBtn').style.display = 'none';
     document.getElementById('notice').textContent = '';
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
 
-    const btn = document.getElementById('drawBtn');
-    btn.className = 'draw-btn active';
-    btn.onclick = draw;
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
+    if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+    if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
   }
 
   function renderHistory() {
     const list = document.getElementById('historyList');
-    if (history.length === 0) {
+    if (drawHistory.length === 0) {
       list.innerHTML = '<p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding:10px 0;">아직 기록이 없습니다.</p>';
       return;
     }
-    list.innerHTML = history.map(h => `
+    list.innerHTML = drawHistory.map(h => `
       <div class="history-row">
         <span class="student-tag">${h.label}</span>
         <div class="history-picks">
@@ -846,21 +1007,87 @@
   function resetAll() {
     if (!confirm('모든 기록을 초기화할까요?')) return;
     currentPicks = [];
-    history = [];
+    drawHistory = [];
+    studentQueue = [];
+    updateRosterStatus();
     clearStudentName();
     document.getElementById('notice').textContent = '';
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
     document.getElementById('nextBtn').style.display = 'none';
-    const btn = document.getElementById('drawBtn');
-    btn.className = 'draw-btn active';
-    btn.onclick = draw;
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
+    if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+    if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
     renderHistory();
   }
 
   function goBack() {
-    if (history.length > 0 && !confirm('과목 선택으로 돌아가면 현재 기록이 사라집니다. 계속할까요?')) return;
-    showScreen('screenCategory');
+    try {
+      if (drawHistory && drawHistory.length > 0) {
+        if (!confirm('과목 선택으로 돌아가면 현재 기록이 사라집니다. 계속할까요?')) {
+          return;
+        }
+        // 과목 선택 화면으로 돌아갈 때 기록 및 진행 중이던 상태 안전하게 초기화
+        drawHistory = [];
+        currentPicks = [];
+        studentQueue = [];
+        if (typeof updateRosterStatus === 'function') {
+          try { updateRosterStatus(); } catch(e) {}
+        }
+        if (typeof clearStudentName === 'function') {
+          try { clearStudentName(); } catch(e) {}
+        }
+        if (typeof renderSlots === 'function') {
+          try { renderSlots(); } catch(e) {}
+        }
+        if (typeof renderHistory === 'function') {
+          try { renderHistory(); } catch(e) {}
+        }
+        
+        const labelEl = document.getElementById('currentStudentLabel');
+        if (labelEl) labelEl.textContent = '현재 학생: —';
+        
+        const noticeEl = document.getElementById('notice');
+        if (noticeEl) noticeEl.textContent = '';
+        
+        const nextBtnEl = document.getElementById('nextBtn');
+        if (nextBtnEl) nextBtnEl.style.display = 'none';
+        
+        const btnSingle = document.getElementById('drawBtnSingle');
+        const btnAll = document.getElementById('drawBtnAll');
+        if (btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+        if (btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
+      }
+    } catch (err) {
+      console.error("goBack 상태 초기화 중 에러 발생: ", err);
+    }
+    
+    // 버튼의 포커스를 해제하여 키보드 연속 입력으로 인한 무한 confirm 루프 방지
+    try {
+      const activeEl = document.activeElement;
+      if (activeEl && typeof activeEl.blur === 'function') {
+        activeEl.blur();
+      }
+    } catch(e) {}
+    
+    // 최종적으로 화면 전환 강제 실행
+    try {
+      showScreen('screenCategory');
+    } catch (err) {
+      console.error("화면 전환 중 에러 발생: ", err);
+      // 최악의 경우 직접 스타일 제어
+      const catScreen = document.getElementById('screenCategory');
+      const drawScreen = document.getElementById('screenDraw');
+      if (catScreen) {
+        catScreen.classList.add('active');
+        catScreen.style.display = 'flex';
+      }
+      if (drawScreen) {
+        drawScreen.classList.remove('active');
+        drawScreen.style.display = 'none';
+      }
+    }
   }
 
   function showScreen(id) {
