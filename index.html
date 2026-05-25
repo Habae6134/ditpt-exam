@@ -11,6 +11,9 @@
   <meta name="apple-mobile-web-app-title" content="제비뽑기" />
   <meta name="theme-color" content="#3182ce" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 엑셀(.xlsx) 및 PDF(.pdf) 저장 라이브러리 추가 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -173,17 +176,81 @@
     }
     .reset-btn:hover { background: #fff5f5; }
 
+    /* 내보내기 드롭다운 스타일 */
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
     .export-btn {
-      padding: 6px 10px; font-size: 0.78rem; font-weight: bold;
-      border: 1px solid #cbd5e0; border-radius: 6px; background: white;
+      padding: 6px 12px; font-size: 0.78rem; font-weight: bold;
+      border: 1px solid #cbd5e0; border-radius: 8px; background: white;
       color: #4a5568; cursor: pointer; transition: all 0.2s;
-      display: inline-flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .export-btn:hover { background: #f7fafc; border-color: #a0aec0; color: #2d3748; }
-    .export-btn.csv { border-color: #38a169; color: #38a169; }
-    .export-btn.csv:hover { background: #f0fff4; }
-    .export-btn.txt { border-color: #4299e1; color: #4299e1; }
-    .export-btn.txt:hover { background: #ebf8ff; }
+    .export-btn .arrow { font-size: 0.6rem; color: #718096; transition: transform 0.2s; }
+    .export-dropdown.open .export-btn .arrow { transform: rotate(180deg); }
+
+    .export-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 10;
+      width: 230px;
+      overflow: hidden;
+      padding: 6px 0;
+      transform-origin: top right;
+      animation: dropdownFade 0.18s ease;
+    }
+    
+    .export-menu.open {
+      display: block;
+    }
+    
+    @keyframes dropdownFade {
+      from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .export-menu-item {
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4a5568;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+    .export-menu-item:hover {
+      background: #f7fafc;
+    }
+    .export-menu-item .icon {
+      font-size: 1rem;
+      width: 18px;
+      text-align: center;
+    }
+    
+    .export-menu-item.xlsx { color: #2f855a; }
+    .export-menu-item.xlsx:hover { background: #f0fff4; }
+    
+    .export-menu-item.pdf { color: #c53030; }
+    .export-menu-item.pdf:hover { background: #fff5f5; }
+    
+    .export-menu-item.txt { color: #2b6cb0; }
+    .export-menu-item.txt:hover { background: #ebf8ff; }
 
     .notice { font-size: 0.78rem; color: #a0aec0; text-align: center; margin-top: 6px; }
 
@@ -498,9 +565,21 @@
   <div class="card history-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
       <h2 style="margin:0; font-size:1.2rem; display:flex; align-items:center; gap:6px;">📋 뽑기 기록</h2>
-      <div style="display:flex; gap:6px;">
-        <button class="export-btn csv" onclick="exportToCSV()" title="엑셀 CSV 파일로 다운로드">📥 엑셀(CSV)</button>
-        <button class="export-btn txt" onclick="exportToTXT()" title="메모장 TXT 파일로 다운로드">📥 텍스트</button>
+      <div class="export-dropdown" id="exportDropdown">
+        <button class="export-btn" onclick="toggleExportMenu(event)" title="기록 내보내기">
+          📥 기록 내보내기 <span class="arrow">▼</span>
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <button class="export-menu-item xlsx" onclick="exportToXLSX()">
+            <span class="icon">📊</span> Excel 파일로 저장 (.xlsx)
+          </button>
+          <button class="export-menu-item pdf" onclick="exportToPDF()">
+            <span class="icon">🔴</span> PDF 보고서로 저장 (.pdf)
+          </button>
+          <button class="export-menu-item txt" onclick="exportToTXT()">
+            <span class="icon">📝</span> 텍스트 문서로 저장 (.txt)
+          </button>
+        </div>
       </div>
     </div>
     <div class="card-body" id="historyList">
@@ -1074,31 +1153,173 @@
     list.scrollTop = list.scrollHeight;
   }
 
-  function exportToCSV() {
+  // ── 내보내기 드롭다운 제어 ──
+  function toggleExportMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('exportMenu');
+    const dropdown = document.getElementById('exportDropdown');
+    if (menu && dropdown) {
+      menu.classList.toggle('open');
+      dropdown.classList.toggle('open');
+    }
+  }
+
+  function closeExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    const dropdown = document.getElementById('exportDropdown');
+    if (menu && dropdown) {
+      menu.classList.remove('open');
+      dropdown.classList.remove('open');
+    }
+  }
+
+  // 외부 영역 클릭 시 드롭다운 닫기 등록
+  document.addEventListener('click', closeExportMenu);
+
+  function exportToXLSX() {
     if (!drawHistory || drawHistory.length === 0) {
       alert("다운로드할 뽑기 기록이 없습니다.");
       return;
     }
-    let csvContent = "\uFEFF"; // 한글 깨짐 방지용 BOM
-    csvContent += "순번,학생 이름/번호,뽑은 시간,뽑힌 문제 목록\n";
-    drawHistory.forEach((h, index) => {
-      const row = [
-        index + 1,
-        `"${h.label.replace(/"/g, '""')}"`,
-        `"${h.timestamp || ''}"`,
-        `"${h.picks.join(', ').replace(/"/g, '""')}"`
-      ].join(",");
-      csvContent += row + "\n";
-    });
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `실기시험_뽑기기록_${selectedCategory || '과목'}_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (typeof XLSX === 'undefined') {
+      alert("엑셀 라이브러리가 로드되지 않았습니다. 인터넷 연결을 확인해 주세요.");
+      return;
+    }
+
+    try {
+      const aoaData = [
+        [`🎓 실기시험 제비뽑기 결과 보고서 - [${selectedCategory || '과목'}]`],
+        [`출력 일시: ${new Date().toLocaleString()}`],
+        [], // 빈 줄
+        ["순번", "학생 이름/번호", "뽑은 시간", "뽑힌 문제 목록"]
+      ];
+
+      drawHistory.forEach((h, index) => {
+        aoaData.push([
+          index + 1,
+          h.label,
+          h.timestamp || '',
+          h.picks.join(', ')
+        ]);
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(aoaData);
+
+      // 제목 및 메타정보 열 병합 서식 추가 (A~D 병합)
+      worksheet['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
+      ];
+
+      // 열 너비 자동 최적화 조절
+      const colWidths = [
+        { wch: 8 },  // 순번
+        { wch: 20 }, // 학생 이름/번호
+        { wch: 22 }, // 뽑은 시간
+        { wch: 45 }  // 뽑힌 문제 목록
+      ];
+      
+      aoaData.forEach(row => {
+        row.forEach((val, colIdx) => {
+          if (val && colIdx < colWidths.length) {
+            const valStr = val.toString();
+            // 한글의 경우 바이트나 문자 길이에 유연하게 대응하도록 가중치를 둡니다.
+            const len = valStr.split('').reduce((acc, char) => acc + (char.charCodeAt(0) > 127 ? 2 : 1), 0);
+            if (len + 4 > colWidths[colIdx].wch) {
+              colWidths[colIdx].wch = len + 4;
+            }
+          }
+        });
+      });
+      worksheet['!cols'] = colWidths;
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, selectedCategory ? selectedCategory.substring(0, 30) : '뽑기기록');
+
+      XLSX.writeFile(workbook, `실기시험_뽑기기록_${selectedCategory || '과목'}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    } catch (err) {
+      console.error("엑셀 파일 내보내기 에러:", err);
+      alert("엑셀 파일 생성 중 오류가 발생했습니다: " + err.message);
+    }
+  }
+
+  function exportToPDF() {
+    if (!drawHistory || drawHistory.length === 0) {
+      alert("다운로드할 뽑기 기록이 없습니다.");
+      return;
+    }
+    if (typeof html2pdf === 'undefined') {
+      alert("PDF 라이브러리가 로드되지 않았습니다. 인터넷 연결을 확인해 주세요.");
+      return;
+    }
+
+    try {
+      // 메모리에 가상의 출력 양식 DIV 생성
+      const template = document.createElement('div');
+      template.style.padding = '20px';
+      template.style.fontFamily = "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif";
+      template.style.color = '#2d3748';
+      template.style.background = '#ffffff';
+
+      let htmlContent = `
+        <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px double #cbd5e0; padding-bottom: 16px;">
+          <h1 style="font-size: 1.8rem; color: #1a365d; margin: 0 0 8px 0; font-weight: 800; letter-spacing: -1px;">🎓 실기시험 제비뽑기 결과 보고서</h1>
+          <p style="font-size: 0.95rem; color: #718096; margin: 0;">과목명: <strong style="color: #2b6cb0;">${selectedCategory || '과목'}</strong> &nbsp;|&nbsp; 출력 일시: ${new Date().toLocaleString()}</p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem;">
+          <thead>
+            <tr style="background-color: #ebf8ff; border-top: 2px solid #2b6cb0; border-bottom: 2px solid #2b6cb0;">
+              <th style="padding: 10px 6px; border: 1px solid #cbd5e0; width: 8%; text-align: center; color: #2c5282; font-weight: bold;">순번</th>
+              <th style="padding: 10px 6px; border: 1px solid #cbd5e0; width: 22%; text-align: center; color: #2c5282; font-weight: bold;">학생 이름/번호</th>
+              <th style="padding: 10px 6px; border: 1px solid #cbd5e0; width: 25%; text-align: center; color: #2c5282; font-weight: bold;">뽑은 시간</th>
+              <th style="padding: 10px 6px; border: 1px solid #cbd5e0; width: 45%; text-align: center; color: #2c5282; font-weight: bold;">뽑힌 문제 목록</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      drawHistory.forEach((h, index) => {
+        const picksBadges = h.picks.map(p => `
+          <span style="display: inline-block; background-color: #edf2f7; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; margin: 2px; font-size: 0.75rem; font-weight: 600; color: #4a5568;">
+            ${p}
+          </span>
+        `).join('');
+
+        htmlContent += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px 6px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold; color: #718096;">${index + 1}</td>
+            <td style="padding: 10px 6px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold; color: #2d3748;">${h.label}</td>
+            <td style="padding: 10px 6px; border: 1px solid #cbd5e0; text-align: center; font-size: 0.75rem; color: #718096;">${h.timestamp || ''}</td>
+            <td style="padding: 8px 6px; border: 1px solid #cbd5e0; text-align: left; line-height: 1.4;">${picksBadges}</td>
+          </tr>
+        `;
+      });
+
+      htmlContent += `
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 40px; text-align: right; font-size: 0.8rem; color: #a0aec0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+          <p style="margin: 0;">동남보건대학교 실기시험 제비뽑기 시스템</p>
+        </div>
+      `;
+
+      template.innerHTML = htmlContent;
+
+      const opt = {
+        margin:        15,
+        filename:      `실기시험_뽑기기록_${selectedCategory || '과목'}_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:         { type: 'jpeg', quality: 0.98 },
+        html2canvas:   { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().from(template).set(opt).save();
+    } catch (err) {
+      console.error("PDF 생성 에러:", err);
+      alert("PDF 리포트 생성 중 오류가 발생했습니다: " + err.message);
+    }
   }
 
   function exportToTXT() {
