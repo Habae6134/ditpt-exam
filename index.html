@@ -10,6 +10,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="제비뽑기" />
   <meta name="theme-color" content="#3182ce" />
+  <!-- 글로벌 오류 감지 시스템 추가 -->
+  <script>
+    window.addEventListener('error', function(e) {
+      alert("⚠️ 시스템 오류 발생:\n" + e.message + "\n\n(파일: " + e.filename.split('/').pop() + " | 라인: " + e.lineno + ")");
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- 엑셀(.xlsx) 및 PDF(.pdf) 저장 라이브러리 추가 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -591,12 +597,21 @@
 </div>
 
 <script>
-  // ── Supabase 초기화 ──
-  const { createClient } = supabase;
-  const db = createClient(
-    'https://apuqrovmutfzrcyobvif.supabase.co',
-    'sb_publishable_PD9vQ5uCMV8F80np7BCKXQ_N9taMucs'
-  );
+  // ── Supabase 초기화 (안전 장치 추가) ──
+  let db;
+  try {
+    if (typeof supabase === 'undefined') {
+      throw new Error('데이터베이스 라이브러리(Supabase)가 정상적으로 로드되지 않았습니다. 인터넷 상태 또는 방화벽/광고 차단 필터를 확인해 주세요.');
+    }
+    const { createClient } = supabase;
+    db = createClient(
+      'https://apuqrovmutfzrcyobvif.supabase.co',
+      'sb_publishable_PD9vQ5uCMV8F80np7BCKXQ_N9taMucs'
+    );
+  } catch (err) {
+    console.error("데이터베이스 초기화 에러:", err);
+    alert("⚠️ 초기화 실패:\n" + err.message);
+  }
 
   let currentPicks = [];
   let drawHistory = [];
