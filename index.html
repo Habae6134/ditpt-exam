@@ -1524,8 +1524,11 @@
   document.getElementById('drawCount').addEventListener('input', () => { currentPicks = []; renderSlots(); });
   document.getElementById('drawCountText').addEventListener('input', () => { currentPicks = []; renderSlots(); });
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+  // file:/// 로컬 실행 시 서비스 워커 오류 방지용 안전 검증 추가
+  if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn("서비스 워커 등록 실패:", err);
+    });
   }
 </script>
 </body>
