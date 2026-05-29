@@ -3,10 +3,7 @@ const ASSETS = [
   '/', 
   '/index.html', 
   '/manifest.json', 
-  '/icon.svg',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+  '/icon.svg'
 ];
 
 self.addEventListener('install', e => {
