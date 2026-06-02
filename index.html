@@ -80,7 +80,7 @@
 
     /* ── 설정 ── */
     .settings-grid { display: grid; gap: 10px; margin-bottom: 14px; }
-    label { font-size: 0.8rem; color: #718096; display: block; margin-bottom: 4px; }
+    label { font-size: 0.9rem; color: #718096; display: block; margin-bottom: 4px; }
     input[type="number"], input[type="text"], input[type="password"] {
       width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;
       font-size: 1rem; text-align: center; outline: none; transition: border-color 0.2s;
@@ -103,7 +103,7 @@
     }
     .item-row:last-child { border-bottom: none; }
     .item-index { font-size: 0.75rem; color: #a0aec0; width: 20px; flex-shrink: 0; }
-    .item-name { flex: 1; font-size: 0.95rem; color: #2d3748; }
+    .item-name { flex: 1; font-size: 0.9rem; color: #2d3748; }
     .del-btn {
       background: none; border: none; color: #fc8181; cursor: pointer;
       font-size: 1rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
@@ -118,7 +118,7 @@
       border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;
     }
     .list-card-header:hover { opacity: 0.75; }
-    #listToggleIcon { font-size: 0.75rem; color: #a0aec0; }
+    #listToggleIcon, #historyToggleIcon { font-size: 0.78rem; color: #718096; background: #f0f4f8; border-radius: 6px; padding: 2px 8px; font-weight: bold; letter-spacing: 0.02em; }
 
     /* ── 번호 슬롯 ── */
     .student-label { text-align: center; font-size: 1.1rem; color: #2d3748; margin-bottom: 16px; font-weight: bold; }
@@ -174,6 +174,29 @@
     .next-btn.last-student:hover {
       background: #fff5f5;
     }
+
+    /* ── 시험 시작/패널 ── */
+    .exam-start-btn {
+      width: 100%; padding: 16px; font-size: 1.1rem; font-weight: bold;
+      border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: white; box-shadow: 0 4px 14px rgba(229,62,62,0.35); margin-bottom: 0;
+    }
+    .exam-start-btn:hover { transform: translateY(-2px); }
+    .exam-panel { padding: 16px 20px; }
+    .exam-student-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; }
+    .exam-label-small { font-size: 0.75rem; color: #718096; margin-bottom: 3px; }
+    .exam-current-name { font-size: 1.6rem; font-weight: bold; color: #1a365d; word-break: break-all; }
+    .exam-next-name { font-size: 1.05rem; color: #a0aec0; font-weight: bold; text-align: right; word-break: break-all; }
+    .exam-action-row { display: flex; gap: 8px; }
+    .exam-absent-btn { flex: 1; padding: 10px 6px; background: #fed7d7; color: #c53030; border: 2px solid #fc8181; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+    .exam-pending-btn { flex: 1; padding: 10px 6px; background: #fefcbf; color: #744210; border: 2px solid #f6e05e; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+    .exam-end-btn-card { flex: 1; padding: 10px 6px; background: #2d3748; color: white; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+    .exam-absent-btn:hover { background: #feb2b2; }
+    .exam-pending-btn:hover { background: #faf089; }
+    .exam-end-btn-card:hover { background: #1a202c; }
+    .history-card.prominent { border: 2px solid #4299e1; box-shadow: 0 8px 40px rgba(66,153,225,0.2); }
+    .history-card.prominent .card-body { max-height: none; }
 
     .reset-btn {
       width: 100%; padding: 10px; margin-top: 10px; font-size: 0.85rem;
@@ -331,6 +354,19 @@
     .saved-slot-btns { display: flex; gap: 6px; flex-shrink: 0; }
     .save-slot-btn { padding: 10px 14px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; white-space: nowrap; }
     .save-slot-btn:hover { background: #38a169; }
+    .roster-btns { display: flex; gap: 8px; margin-top: 6px; }
+    .roster-btn { flex: 1; padding: 9px 6px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; border: none; white-space: nowrap; }
+    .roster-btn-input { background: #f7fafc; color: #4a5568; border: 1.5px solid #e2e8f0; }
+    .roster-btn-load { background: #f7fafc; color: #4a5568; border: 1.5px solid #e2e8f0; }
+    .roster-btn-save { background: #48bb78; color: white; }
+    .roster-btn:hover { opacity: 0.82; }
+    .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 12px; }
+    .action-btn { padding: 11px 8px; border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .action-btn:hover { opacity: 0.82; }
+    .action-btn-add { background: #4299e1; color: white; }
+    .action-btn-save { background: #48bb78; color: white; }
+    .action-btn-load { background: #f7fafc; color: #4a5568; border: 1.5px solid #e2e8f0; }
+    .action-btn-sort { background: #f7fafc; color: #4a5568; border: 1.5px solid #e2e8f0; }
     .slot-option-btn {
       width: 100%; padding: 14px 16px; margin-bottom: 8px; border: 2px solid #e2e8f0;
       border-radius: 10px; background: white; text-align: left; cursor: pointer; display: block;
@@ -388,6 +424,39 @@
     </div>
   </div>
 
+  <!-- 기록 카드 -->
+  <div class="card history-card">
+    <div class="list-card-header" onclick="toggleHistoryList()" style="margin-bottom:12px;">
+      <h2 style="margin:0; border-bottom:none; padding-bottom:0; display:flex; align-items:center; gap:6px;">📋 뽑기 기록</h2>
+      <span id="historyToggleIcon">▲ 닫기</span>
+    </div>
+    <div id="historyCardBody">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+      <div></div>
+      <div class="export-dropdown" id="exportDropdown">
+        <button class="export-btn" onclick="toggleExportMenu(event)" title="기록 내보내기">
+          📥 기록 내보내기 <span class="arrow">▼</span>
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <button class="export-menu-item xlsx" onclick="exportToXLSX()">
+            <span class="icon">📊</span> Excel 파일로 저장 (.xlsx)
+          </button>
+          <button class="export-menu-item pdf" onclick="exportToPDF()">
+            <span class="icon">🔴</span> PDF 보고서로 저장 (.pdf)
+          </button>
+          <button class="export-menu-item txt" onclick="exportToTXT()">
+            <span class="icon">📝</span> 텍스트 문서로 저장 (.txt)
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" id="historyList">
+      <p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 10px 0;">아직 기록이 없습니다.</p>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">🔄 전체 초기화</button>
+    </div>
+  </div>
+
   <!-- 설정 카드 (숫자 모드) -->
   <div class="card" id="cardNumberSettings">
     <h2>⚙️ 설정</h2>
@@ -403,9 +472,11 @@
     </div>
     <div>
       <label>학생 이름/번호</label>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="studentNameNumber" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px; flex:1;" />
-        <button class="add-btn" onclick="openRosterModal()" style="padding: 10px 14px;">출석부</button>
+      <input type="text" id="studentNameNumber" placeholder="예: 홍길동 / 1번" style="text-align:left; padding-left:12px; width:100%; box-sizing:border-box;" />
+      <div class="roster-btns">
+        <button class="roster-btn roster-btn-input" onclick="openRosterModal()">📋 명단 입력</button>
+        <button class="roster-btn roster-btn-load" onclick="openRosterLoadModal()">📂 불러오기</button>
+        <button class="roster-btn roster-btn-save" onclick="openRosterSaveModal()">💾 저장하기</button>
       </div>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 6px;">
         <p id="rosterStatusNum" style="font-size: 0.8rem; color: #38a169; font-weight: bold; display: none; margin: 0;"></p>
@@ -418,25 +489,15 @@
   <div class="card" id="cardTextSettings" style="display:none;">
     <div class="list-card-header" onclick="toggleItemList()">
       <h2 style="border:none; margin:0; padding:0;">📝 실기문제 목록</h2>
-      <span id="listToggleIcon">▲</span>
+      <span id="listToggleIcon">▲ 닫기</span>
     </div>
     <div id="itemListBody">
-      <div id="adminControls" style="margin-top:14px;">
-        <div class="more-wrap" style="margin-top:14px;">
-          <button class="more-btn" onclick="toggleMoreMenu(event)">⋮</button>
-          <div class="more-menu" id="moreMenu">
-            <button class="more-menu-item" onclick="openLoadSlotModal(); closeMoreMenu()">📂 저장슬롯에서 불러오기</button>
-            <button class="more-menu-item" onclick="openBulkModal(); closeMoreMenu()">📋 여러 개 붙여넣기</button>
-            <button class="more-menu-item" onclick="sortItems(); closeMoreMenu()">🔤 가나다 정렬</button>
-            <div class="more-menu-divider"></div>
-            <button class="more-menu-item danger" onclick="clearAllItems(); closeMoreMenu()">✕ 전체 삭제</button>
-          </div>
-        </div>
-        <div class="item-add-row">
-          <input type="text" id="newItemInput" placeholder="문제 이름 입력" style="text-align:left; padding-left:12px;"
-            onkeydown="if(event.key==='Enter') addItem()" />
-          <button class="add-btn" onclick="addItem()">+ 추가</button>
-          <button class="save-slot-btn" onclick="openSaveSlotModal()">저장</button>
+      <div id="adminControls">
+        <div class="action-btns">
+          <button class="action-btn action-btn-add" onclick="openBulkModal()">+ 실기문제 추가하기</button>
+          <button class="action-btn action-btn-save" onclick="openSaveSlotModal()">💾 수정사항 저장</button>
+          <button class="action-btn action-btn-load" onclick="openLoadSlotModal()">📂 문제 불러오기</button>
+          <button class="action-btn action-btn-sort" onclick="sortItems()">🔤 가나다 정렬</button>
         </div>
       </div>
       <p id="itemNotice" style="font-size:0.78rem; margin-bottom:8px; min-height:1.2em;"></p>
@@ -532,31 +593,78 @@
     </div>
   </div>
 
+  <!-- 출석부 저장하기 모달 -->
+  <div class="modal-overlay" id="rosterSaveModal">
+    <div class="modal">
+      <h3>💾 출석부 저장하기</h3>
+      <p id="rosterSaveDesc"></p>
+      <div id="rosterSaveOptions"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeRosterSaveModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 출석부 불러오기 모달 -->
+  <div class="modal-overlay" id="rosterLoadModal">
+    <div class="modal">
+      <h3>📂 출석부 불러오기</h3>
+      <p>불러올 슬롯을 선택하세요.</p>
+      <div id="rosterLoadOptions"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeRosterLoadModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 텍스트 모드 설정 -->
   <div class="card" id="cardTextDrawSettings" style="display:none;">
     <h2>⚙️ 설정</h2>
-    <div class="settings-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="settings-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:0;">
       <div>
         <label>뽑을 문제 수</label>
         <input type="number" id="drawCountText" value="3" min="1" max="10" />
       </div>
-      <div>
-        <label>학생 이름/번호</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="studentNameText" placeholder="예: 홍길동" style="text-align:left; padding-left:12px; flex:1;" />
-          <button class="add-btn" onclick="openRosterModal()" style="padding: 10px 14px;">출석부</button>
-        </div>
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 6px;">
-          <p id="rosterStatusText" style="font-size: 0.8rem; color: #38a169; font-weight: bold; display: none; margin: 0;"></p>
-          <button id="rosterViewBtnText" onclick="openRosterViewModal()" style="display: none; background: none; border: none; color: #4299e1; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-decoration: underline; padding: 2px 4px;">명단 전체보기</button>
-        </div>
+    </div>
+    <div style="margin-top:12px;">
+      <label>학생 이름/번호</label>
+      <input type="text" id="studentNameText" placeholder="예: 홍길동" style="text-align:left; padding-left:12px; width:100%; box-sizing:border-box;" />
+      <div class="roster-btns">
+        <button class="roster-btn roster-btn-input" onclick="openRosterModal()">📋 명단 입력</button>
+        <button class="roster-btn roster-btn-load" onclick="openRosterLoadModal()">📂 불러오기</button>
+        <button class="roster-btn roster-btn-save" onclick="openRosterSaveModal()">💾 저장하기</button>
       </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top: 6px;">
+        <p id="rosterStatusText" style="font-size: 0.8rem; color: #38a169; font-weight: bold; display: none; margin: 0;"></p>
+        <button id="rosterViewBtnText" onclick="openRosterViewModal()" style="display: none; background: none; border: none; color: #4299e1; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-decoration: underline; padding: 2px 4px;">명단 전체보기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시험 패널 (시험 중에만 표시) -->
+  <div class="card exam-panel" id="examPanel" style="display:none;">
+    <div class="exam-student-row">
+      <div>
+        <div class="exam-label-small">현재 학생</div>
+        <div class="exam-current-name" id="examCurrentName">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="exam-label-small">다음 학생</div>
+        <div class="exam-next-name" id="examNextName">—</div>
+      </div>
+    </div>
+    <div class="exam-action-row">
+      <button class="exam-absent-btn" onclick="markAbsent()">🚫 결석</button>
+      <button class="exam-pending-btn" onclick="markPending()">⏸️ 보류</button>
     </div>
   </div>
 
   <!-- 뽑기 카드 -->
   <div class="card">
-    <div class="student-label" id="currentStudentLabel">현재 학생: —</div>
+    <div id="examStartArea">
+      <button class="exam-start-btn" onclick="startExam()">🏁 시험 시작</button>
+    </div>
+    <div class="student-label" id="currentStudentLabel" style="display:none;">현재 학생: —</div>
     <div class="slots" id="slotsNumber"></div>
     <div class="text-slots" id="slotsText" style="display:none;"></div>
     <div style="display:flex; gap:10px; width:100%;">
@@ -567,32 +675,6 @@
     <p class="notice" id="notice"></p>
   </div>
 
-  <!-- 기록 카드 -->
-  <div class="card history-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-      <h2 style="margin:0; font-size:1.2rem; display:flex; align-items:center; gap:6px;">📋 뽑기 기록</h2>
-      <div class="export-dropdown" id="exportDropdown">
-        <button class="export-btn" onclick="toggleExportMenu(event)" title="기록 내보내기">
-          📥 기록 내보내기 <span class="arrow">▼</span>
-        </button>
-        <div class="export-menu" id="exportMenu">
-          <button class="export-menu-item xlsx" onclick="exportToXLSX()">
-            <span class="icon">📊</span> Excel 파일로 저장 (.xlsx)
-          </button>
-          <button class="export-menu-item pdf" onclick="exportToPDF()">
-            <span class="icon">🔴</span> PDF 보고서로 저장 (.pdf)
-          </button>
-          <button class="export-menu-item txt" onclick="exportToTXT()">
-            <span class="icon">📝</span> 텍스트 문서로 저장 (.txt)
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="card-body" id="historyList">
-      <p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding: 10px 0;">아직 기록이 없습니다.</p>
-    </div>
-    <button class="reset-btn" onclick="resetAll()">🔄 전체 초기화</button>
-  </div>
 
 </div>
 
@@ -620,6 +702,8 @@
   let textItems = []; // [{id, name}]
   let savedSlots = []; // [{slot, name, items}]
   let studentQueue = []; // 출석부 대기열
+  let examStarted = false;
+  let currentRosterSlotName = ''; // 현재 불러온 슬롯 이름
 
   // ── 카테고리 선택 ──
   async function selectCategory(name, type) {
@@ -777,18 +861,22 @@
     renderSavedSlots();
   }
 
+  const LOCKED_SLOT = 1;
+
   function renderSavedSlots() {
     // 저장 슬롯 선택 모달 옵션
-    document.getElementById('saveSlotOptions').innerHTML = savedSlots.map(s => `
+    document.getElementById('saveSlotOptions').innerHTML = savedSlots.map(s => {
+      const locked = s.slot === LOCKED_SLOT;
+      return `
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="saveToSlot(${s.slot}); closeSaveSlotModal()">
-          <strong>${s.name}</strong>
-          <span>${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}</span>
+        <button class="slot-option-btn" style="margin:0; flex:1; ${locked ? 'opacity:0.6; cursor:not-allowed;' : ''}" ${locked ? 'disabled' : `onclick="saveToSlot(${s.slot}); closeSaveSlotModal()"`}>
+          <strong>${locked ? '🔒 ' : ''}${s.name}</strong>
+          <span>${s.items.length > 0 ? `${s.items.length}개 저장됨` : '비어있음'}${locked ? ' · 잠금됨' : ''}</span>
         </button>
-        <button onclick="promptRenameSlot(${s.slot})" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#718096; white-space:nowrap;">✏️ 이름</button>
-        <button onclick="clearSlot(${s.slot})" style="background:none; border:1.5px solid #fc8181; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#e53e3e; white-space:nowrap;">🗑️</button>
-      </div>
-    `).join('');
+        ${locked ? '' : `<button onclick="promptRenameSlot(${s.slot})" style="background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#718096; white-space:nowrap;">✏️ 이름</button>`}
+        ${locked ? '' : `<button onclick="clearSlot(${s.slot})" style="background:none; border:1.5px solid #fc8181; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; color:#e53e3e; white-space:nowrap;">🗑️</button>`}
+      </div>`;
+    }).join('');
 
     // 불러오기 슬롯 선택 모달 옵션
     document.getElementById('loadSlotOptions').innerHTML = savedSlots.map(s => `
@@ -819,6 +907,7 @@
   }
 
   async function saveToSlot(slotNum) {
+    if (slotNum === LOCKED_SLOT) { setItemNotice('슬롯 1번은 잠겨있어 저장할 수 없습니다.', true); return; }
     const items = textItems.map(i => i.name);
     const { error } = await db.from('saved_lists')
       .update({ items, updated_at: new Date().toISOString() })
@@ -831,6 +920,7 @@
   }
 
   async function promptRenameSlot(slotNum) {
+    if (slotNum === LOCKED_SLOT) { setItemNotice('슬롯 1번은 잠겨있어 이름을 변경할 수 없습니다.', true); return; }
     const s = savedSlots.find(s => s.slot === slotNum);
     const newName = prompt('슬롯 이름을 입력하세요:', s?.name || `슬롯 ${slotNum}`);
     if (!newName || !newName.trim()) return;
@@ -842,6 +932,7 @@
   }
 
   async function clearSlot(slotNum) {
+    if (slotNum === LOCKED_SLOT) { setItemNotice('슬롯 1번은 잠겨있어 삭제할 수 없습니다.', true); return; }
     const s = savedSlots.find(s => s.slot === slotNum);
     if (!s || s.items.length === 0) { setItemNotice('이미 비어있는 슬롯입니다.', true); return; }
     if (!confirm(`"${s.name}" 슬롯 내용을 삭제할까요?`)) return;
@@ -872,17 +963,9 @@
     setItemNotice(`"${s.name}" 불러옴 (${data.length}개)`, false);
   }
 
-  // ── 더보기 메뉴 ──
-  function toggleMoreMenu(e) {
-    e.stopPropagation();
-    document.getElementById('moreMenu').classList.toggle('open');
-  }
-
   function closeMoreMenu() {
-    document.getElementById('moreMenu').classList.remove('open');
+    document.getElementById('moreMenu')?.classList.remove('open');
   }
-
-  document.addEventListener('click', closeMoreMenu);
 
   // ── 모달 ──
   function openBulkModal() {
@@ -909,6 +992,7 @@
   function confirmRoster() {
     const raw = document.getElementById('rosterTextarea').value;
     studentQueue = raw.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+    currentRosterSlotName = '';
     if (studentQueue.length > 0) {
       document.getElementById('studentNameNumber').value = studentQueue[0];
       document.getElementById('studentNameText').value = studentQueue[0];
@@ -921,8 +1005,9 @@
   }
 
   function updateRosterStatus() {
-    const msg = studentQueue.length > 0 
-      ? `대기열: ${studentQueue.length}명 남음 (다음: ${studentQueue.length > 1 ? studentQueue[1] : '없음'})` 
+    const slotTag = currentRosterSlotName ? ` · ${currentRosterSlotName}` : '';
+    const msg = studentQueue.length > 0
+      ? `대기열: ${studentQueue.length}명 남음 (다음: ${studentQueue.length > 1 ? studentQueue[1] : '없음'})${slotTag}`
       : '';
     const isVisible = studentQueue.length > 0;
     
@@ -965,6 +1050,119 @@
 
   function closeRosterViewModal() {
     document.getElementById('rosterViewModal').classList.remove('open');
+  }
+
+  // ── 출석부 저장 슬롯 ──
+  const ROSTER_SLOT_KEY = 'rosterSlots';
+
+  function getRosterSlots() {
+    const stored = localStorage.getItem(ROSTER_SLOT_KEY);
+    if (stored) return JSON.parse(stored);
+    const defaults = [1, 2, 3, 4].map(i => ({ id: i, name: `명단 ${i}`, students: [] }));
+    localStorage.setItem(ROSTER_SLOT_KEY, JSON.stringify(defaults));
+    return defaults;
+  }
+
+  function saveRosterSlotsToStorage(slots) {
+    localStorage.setItem(ROSTER_SLOT_KEY, JSON.stringify(slots));
+  }
+
+  function renderRosterSlotModals() {
+    const slots = getRosterSlots();
+    const addBtn = `<button onclick="addRosterSlot()" style="width:100%; margin-top:8px; padding:10px; background:#f7fafc; border:1.5px dashed #cbd5e0; border-radius:8px; color:#718096; font-size:0.9rem; cursor:pointer; font-weight:bold;">+ 슬롯 추가</button>`;
+
+    const iconBtn = (onclick, color, icon) =>
+      `<button onclick="${onclick}" style="background:none; border:1.5px solid ${color}; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:0.85rem; white-space:nowrap;">${icon}</button>`;
+
+    document.getElementById('rosterSaveOptions').innerHTML = slots.map(s => `
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="saveRosterToSlot(${s.id}); closeRosterSaveModal()">
+          <strong>${s.name}</strong>
+          <span>${s.students.length > 0 ? `${s.students.length}명 저장됨` : '비어있음'}</span>
+        </button>
+        ${iconBtn(`renameRosterSlot(${s.id})`, '#e2e8f0', '✏️')}
+        ${iconBtn(`deleteRosterSlot(${s.id})`, '#fc8181', '🗑️')}
+      </div>`).join('') + addBtn;
+
+    document.getElementById('rosterLoadOptions').innerHTML = slots.map(s => `
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="loadRosterFromSlot(${s.id})" ${s.students.length === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+          <strong>${s.name}</strong>
+          <span>${s.students.length > 0 ? `${s.students.length}명 저장됨` : '비어있음'}</span>
+        </button>
+        ${iconBtn(`renameRosterSlot(${s.id})`, '#e2e8f0', '✏️')}
+        ${iconBtn(`deleteRosterSlot(${s.id})`, '#fc8181', '🗑️')}
+      </div>`).join('') + addBtn;
+  }
+
+  function openRosterSaveModal() {
+    document.getElementById('rosterSaveDesc').textContent = `현재 명단(${studentQueue.length}명)을 저장할 슬롯을 선택하세요.`;
+    renderRosterSlotModals();
+    document.getElementById('rosterSaveModal').classList.add('open');
+  }
+
+  function closeRosterSaveModal() {
+    document.getElementById('rosterSaveModal').classList.remove('open');
+  }
+
+  function openRosterLoadModal() {
+    renderRosterSlotModals();
+    document.getElementById('rosterLoadModal').classList.add('open');
+  }
+
+  function closeRosterLoadModal() {
+    document.getElementById('rosterLoadModal').classList.remove('open');
+  }
+
+  function saveRosterToSlot(id) {
+    const slots = getRosterSlots();
+    const slot = slots.find(s => s.id === id);
+    if (!slot) return;
+    slot.students = [...studentQueue];
+    saveRosterSlotsToStorage(slots);
+  }
+
+  function loadRosterFromSlot(id) {
+    const slots = getRosterSlots();
+    const slot = slots.find(s => s.id === id);
+    if (!slot || slot.students.length === 0) return;
+    if (!confirm(`"${slot.name}" (${slot.students.length}명)을 불러올까요?\n현재 명단이 교체됩니다.`)) return;
+    studentQueue = [...slot.students];
+    currentRosterSlotName = slot.name;
+    if (studentQueue.length > 0) {
+      document.getElementById('studentNameNumber').value = studentQueue[0];
+      document.getElementById('studentNameText').value = studentQueue[0];
+    }
+    updateRosterStatus();
+    saveStateToLocalStorage();
+    closeRosterLoadModal();
+  }
+
+  function addRosterSlot() {
+    const slots = getRosterSlots();
+    const maxId = slots.reduce((max, s) => Math.max(max, s.id), 0);
+    slots.push({ id: maxId + 1, name: `명단 ${maxId + 1}`, students: [] });
+    saveRosterSlotsToStorage(slots);
+    renderRosterSlotModals();
+  }
+
+  function renameRosterSlot(id) {
+    const slots = getRosterSlots();
+    const slot = slots.find(s => s.id === id);
+    const newName = prompt('슬롯 이름을 입력하세요:', slot?.name || '');
+    if (!newName || !newName.trim()) return;
+    slot.name = newName.trim();
+    saveRosterSlotsToStorage(slots);
+    renderRosterSlotModals();
+  }
+
+  function deleteRosterSlot(id) {
+    const slots = getRosterSlots();
+    if (slots.length <= 1) { alert('슬롯이 최소 1개는 있어야 합니다.'); return; }
+    const slot = slots.find(s => s.id === id);
+    if (!confirm(`"${slot?.name}" 슬롯을 삭제할까요?`)) return;
+    saveRosterSlotsToStorage(slots.filter(s => s.id !== id));
+    renderRosterSlotModals();
   }
 
   // ── 설정 ──
@@ -1012,6 +1210,106 @@
           : `<span class="text-slot-num">${i + 1}</span><span class="text-slot-placeholder">뽑기 대기 중...</span>`;
         container.appendChild(div);
       }
+    }
+  }
+
+  // ── 시험 진행 ──
+  function startExam() {
+    if (studentQueue.length === 0) {
+      alert('출석부 명단을 먼저 입력해주세요.\n(📋 명단 입력 버튼을 눌러 학생 이름을 등록하세요)');
+      return;
+    }
+    examStarted = true;
+    document.getElementById('cardNumberSettings').style.display = 'none';
+    document.getElementById('cardTextSettings').style.display = 'none';
+    document.getElementById('cardTextDrawSettings').style.display = 'none';
+    document.getElementById('examStartArea').style.display = 'none';
+    document.getElementById('examPanel').style.display = '';
+    document.getElementById('currentStudentLabel').style.display = 'none';
+    document.querySelector('.history-card').style.display = 'none';
+    updateExamPanel();
+    updateUI();
+  }
+
+  function endExam() {
+    if (!confirm('시험을 종료할까요?\n현재까지의 기록이 표시됩니다.')) return;
+    const name = getStudentName();
+    const label = name || `학생 ${drawHistory.length + 1}`;
+    if (currentPicks.length > 0) {
+      drawHistory.push({ label, picks: [...currentPicks], timestamp: getFormattedTime() });
+      currentPicks = [];
+    }
+    examStarted = false;
+    document.getElementById('examPanel').style.display = 'none';
+    document.getElementById('examStartArea').style.display = '';
+    document.getElementById('cardNumberSettings').style.display = categoryType === 'number' ? '' : 'none';
+    document.getElementById('cardTextSettings').style.display = categoryType === 'text' ? '' : 'none';
+    document.getElementById('cardTextDrawSettings').style.display = categoryType === 'text' ? '' : 'none';
+    renderSlots();
+    renderHistory();
+    const historyCard = document.querySelector('.history-card');
+    historyCard.style.display = '';
+    historyCard.classList.add('prominent');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
+  }
+
+  function updateExamPanel() {
+    document.getElementById('examCurrentName').textContent = studentQueue.length > 0 ? studentQueue[0] : '—';
+    document.getElementById('examNextName').textContent = studentQueue.length > 1 ? studentQueue[1] : '없음';
+  }
+
+  function markAbsent() {
+    const name = getStudentName();
+    const label = name || `학생 ${drawHistory.length + 1}`;
+    if (!confirm(`"${label}"을(를) 결석 처리할까요?`)) return;
+    drawHistory.push({ label, picks: [], status: '결석', timestamp: getFormattedTime() });
+    advanceStudent();
+  }
+
+  function markPending() {
+    const name = getStudentName();
+    if (!name) { alert('현재 학생 이름이 없습니다.'); return; }
+    if (!confirm(`"${name}"을(를) 보류 처리할까요?\n명단 맨 뒤로 이동합니다.`)) return;
+    const pending = studentQueue.shift();
+    studentQueue.push(pending);
+    currentPicks = [];
+    renderSlots();
+    if (studentQueue.length > 0) {
+      document.getElementById('studentNameNumber').value = studentQueue[0];
+      document.getElementById('studentNameText').value = studentQueue[0];
+    }
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('notice').textContent = '';
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
+    if (btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+    if (btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
+    updateRosterStatus();
+    updateExamPanel();
+    saveStateToLocalStorage();
+  }
+
+  function advanceStudent() {
+    if (studentQueue.length > 0) studentQueue.shift();
+    currentPicks = [];
+    renderSlots();
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('notice').textContent = '';
+    const btnSingle = document.getElementById('drawBtnSingle');
+    const btnAll = document.getElementById('drawBtnAll');
+    if (btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
+    if (btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
+    if (studentQueue.length > 0) {
+      document.getElementById('studentNameNumber').value = studentQueue[0];
+      document.getElementById('studentNameText').value = studentQueue[0];
+    } else {
+      clearStudentName();
+    }
+    updateRosterStatus();
+    updateExamPanel();
+    saveStateToLocalStorage();
+    if (studentQueue.length === 0) {
+      setTimeout(() => alert('모든 학생의 처리가 완료되었습니다.'), 100);
     }
   }
 
@@ -1069,8 +1367,19 @@
       if(btnSingle) { btnSingle.className = 'draw-btn disabled'; btnSingle.onclick = null; }
       if(btnAll) { btnAll.className = 'draw-btn disabled'; btnAll.onclick = null; }
       
-      // 대기열의 마지막 학생인지 판별 (studentQueue.length === 1 일 때가 마지막 학생)
-      if (studentQueue && studentQueue.length === 1) {
+      if (examStarted && studentQueue && studentQueue.length === 1) {
+        nextBtn.textContent = '🏁 시험 종료';
+        nextBtn.className = 'next-btn last-student';
+        nextBtn.style.display = 'block';
+        nextBtn.onclick = endExam;
+        notice.innerHTML = `<span style="color:#e53e3e; font-weight:bold; font-size:0.85rem;">🎉 ${count}개 뽑기 완료! 마지막 학생입니다.</span>`;
+      } else if (examStarted) {
+        nextBtn.textContent = '✅ 다음 학생';
+        nextBtn.className = 'next-btn';
+        nextBtn.style.display = 'block';
+        nextBtn.onclick = nextStudent;
+        notice.textContent = `${count}개 뽑기 완료! 다음 학생 버튼을 눌러주세요.`;
+      } else if (studentQueue && studentQueue.length === 1) {
         nextBtn.textContent = '🏁 시험 종료 (기록 완료)';
         nextBtn.className = 'next-btn last-student';
         nextBtn.style.display = 'block';
@@ -1088,6 +1397,7 @@
     const name = getStudentName();
     const label = name || `학생 ${drawHistory.length + 1}`;
     document.getElementById('currentStudentLabel').textContent = `현재: ${label}`;
+    if (examStarted) updateExamPanel();
   }
 
   function nextStudent() {
@@ -1125,13 +1435,19 @@
     if(btnSingle) { btnSingle.className = 'draw-btn active'; btnSingle.onclick = draw; }
     if(btnAll) { btnAll.className = 'draw-btn active all'; btnAll.onclick = drawAll; }
     renderSlots();
-    saveStateToLocalStorage(); // 다음 학생으로 진행 시 변경사항 백업
+    if (examStarted) updateExamPanel();
+    saveStateToLocalStorage();
 
     if (isLast) {
-      // 조금 딜레이를 주어 화면 상태가 먼저 초기화되거나 렌더링된 후 자연스럽게 알림이 뜨도록 합니다.
-      setTimeout(() => {
-        alert('🎉 출석부 명단의 모든 학생이 제비뽑기를 완료했습니다!\n하단의 뽑기 기록을 확인하시거나 새로운 과목을 선택하실 수 있습니다.');
-      }, 100);
+      if (examStarted) {
+        setTimeout(() => {
+          alert('🎉 모든 학생의 제비뽑기가 완료되었습니다!\n시험 종료 버튼을 눌러 기록을 확인하세요.');
+        }, 100);
+      } else {
+        setTimeout(() => {
+          alert('🎉 출석부 명단의 모든 학생이 제비뽑기를 완료했습니다!\n하단의 뽑기 기록을 확인하시거나 새로운 과목을 선택하실 수 있습니다.');
+        }, 100);
+      }
     }
   }
 
@@ -1152,19 +1468,23 @@
       list.innerHTML = '<p style="color:#a0aec0; font-size:0.9rem; text-align:center; padding:10px 0;">아직 기록이 없습니다.</p>';
       return;
     }
-    list.innerHTML = drawHistory.map(h => `
+    list.innerHTML = drawHistory.map(h => {
+      const picksHtml = h.status === '결석'
+        ? `<span style="background:#fed7d7; color:#c53030; border-radius:8px; padding:2px 10px; font-size:0.85rem; font-weight:bold;">결석</span>`
+        : h.status === '보류'
+        ? `<span style="background:#fefcbf; color:#744210; border-radius:8px; padding:2px 10px; font-size:0.85rem; font-weight:bold;">보류</span>`
+        : h.picks.map(p => `<span class="pick-badge">${p}</span>`).join('');
+      return `
       <div class="history-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:1;">
           <span class="student-tag">${h.label}</span>
-          <div class="history-picks" style="display:flex; gap:6px; flex-wrap:wrap;">
-            ${h.picks.map(p => `<span class="pick-badge">${p}</span>`).join('')}
-          </div>
+          <div class="history-picks" style="display:flex; gap:6px; flex-wrap:wrap;">${picksHtml}</div>
         </div>
         <span style="font-size:0.75rem; color:#a0aec0; white-space:nowrap; margin-left:10px;" title="뽑은 시간: ${h.timestamp || ''}">
           ${h.timestamp ? h.timestamp.split(' ')[1] : ''}
         </span>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
     list.scrollTop = list.scrollHeight;
   }
 
@@ -1214,7 +1534,7 @@
           index + 1,
           h.label,
           h.timestamp || '',
-          h.picks.join(', ')
+          h.status === '결석' ? '결석' : h.status === '보류' ? '보류' : h.picks.join(', ')
         ]);
       });
 
@@ -1295,7 +1615,11 @@
       `;
 
       drawHistory.forEach((h, index) => {
-        const picksBadges = h.picks.map(p => `
+        const picksBadges = h.status === '결석'
+          ? `<span style="display:inline-block; background:#fed7d7; border:1px solid #fc8181; border-radius:4px; padding:2px 8px; font-size:0.8rem; font-weight:700; color:#c53030;">결석</span>`
+          : h.status === '보류'
+          ? `<span style="display:inline-block; background:#fefcbf; border:1px solid #f6e05e; border-radius:4px; padding:2px 8px; font-size:0.8rem; font-weight:700; color:#744210;">보류</span>`
+          : h.picks.map(p => `
           <span style="display: inline-block; background-color: #edf2f7; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; margin: 2px; font-size: 0.75rem; font-weight: 600; color: #4a5568;">
             ${p}
           </span>
@@ -1349,7 +1673,7 @@
     drawHistory.forEach((h, index) => {
       txtContent += `${index + 1}. 학생명/번호: ${h.label}\n`;
       txtContent += `   - 뽑은 시간: ${h.timestamp || '기록 없음'}\n`;
-      txtContent += `   - 뽑힌 문제: ${h.picks.join(', ')}\n`;
+      txtContent += `   - 뽑힌 문제: ${h.status === '결석' ? '결석' : h.status === '보류' ? '보류' : h.picks.join(', ')}\n`;
       txtContent += `-----------------------------------------\n`;
     });
     
@@ -1418,9 +1742,14 @@
 
   function resetAll() {
     if (!confirm('모든 기록을 초기화할까요?')) return;
+    examStarted = false;
     currentPicks = [];
     drawHistory = [];
     studentQueue = [];
+    document.getElementById('examPanel').style.display = 'none';
+    document.getElementById('examStartArea').style.display = '';
+    document.querySelector('.history-card').style.display = '';
+    document.querySelector('.history-card').classList.remove('prominent');
     updateRosterStatus();
     clearStudentName();
     document.getElementById('notice').textContent = '';
@@ -1514,11 +1843,18 @@
     document.getElementById(id).classList.add('active');
   }
 
+  let historyOpen = true;
+  function toggleHistoryList() {
+    historyOpen = !historyOpen;
+    document.getElementById('historyCardBody').style.display = historyOpen ? '' : 'none';
+    document.getElementById('historyToggleIcon').textContent = historyOpen ? '▲ 닫기' : '▼ 열기';
+  }
+
   let itemListOpen = true;
   function toggleItemList() {
     itemListOpen = !itemListOpen;
     document.getElementById('itemListBody').style.display = itemListOpen ? '' : 'none';
-    document.getElementById('listToggleIcon').textContent = itemListOpen ? '▲' : '▼';
+    document.getElementById('listToggleIcon').textContent = itemListOpen ? '▲ 닫기' : '▼ 열기';
   }
 
   document.getElementById('drawCount').addEventListener('input', () => { currentPicks = []; renderSlots(); });
