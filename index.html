@@ -1047,20 +1047,44 @@
     document.getElementById('rosterViewModal').classList.remove('open');
   }
 
-  // ── 출석부 저장 슬롯 (Supabase 동기화) ──
+  // ── 출석부 저장 슬롯 (Supabase 동기화 - questions 테이블 활용) ──
   async function loadRosterSlotsFromDB() {
-    const { data } = await db.from('saved_lists')
-      .select('*')
-      .eq('category', ROSTER_CATEGORY)
-      .order('slot');
+    const { data, error } = await db.from('questions')
+      .select('id, name')
+      .eq('category', ROSTER_CATEGORY);
+    if (error) { console.error('출석부 슬롯 로드 실패:', error); rosterSlotsCache = []; return; }
     if (data && data.length > 0) {
-      rosterSlotsCache = data.map(s => ({ id: s.slot, name: s.name, students: s.items || [] }));
+      rosterSlotsCache = data.map(row => {
+        try {
+          const p = JSON.parse(row.name);
+          return { dbRowId: row.id, id: p.slotId, name: p.slotName, students: p.students || [] };
+        } catch { return null; }
+      }).filter(Boolean).sort((a, b) => a.id - b.id);
     } else {
-      const defaults = [1,2,3,4].map(i => ({ slot: i, category: ROSTER_CATEGORY, name: `명단 ${i}`, items: [] }));
-      const { error } = await db.from('saved_lists').insert(defaults);
-      if (error) { console.error('출석부 슬롯 초기화 실패:', error); }
-      rosterSlotsCache = [1,2,3,4].map(i => ({ id: i, name: `명단 ${i}`, students: [] }));
+      // 최초 접속 시 기본 슬롯 4개 생성
+      const inserts = [1,2,3,4].map(i => ({
+        category: ROSTER_CATEGORY,
+        name: JSON.stringify({ slotId: i, slotName: `명단 ${i}`, students: [] })
+      }));
+      const { data: inserted, error: insertErr } = await db.from('questions').insert(inserts).select();
+      if (insertErr) { console.error('출석부 슬롯 초기화 실패:', insertErr); rosterSlotsCache = []; return; }
+      rosterSlotsCache = (inserted || []).map(row => {
+        const p = JSON.parse(row.name);
+        return { dbRowId: row.id, id: p.slotId, name: p.slotName, students: [] };
+      }).sort((a, b) => a.id - b.id);
     }
+  }
+
+  async function _rosterUpsertRow(slot) {
+    const newName = JSON.stringify({ slotId: slot.id, slotName: slot.name, students: slot.students });
+    if (slot.dbRowId) {
+      await db.from('questions').delete().eq('id', slot.dbRowId);
+    }
+    const { data, error } = await db.from('questions')
+      .insert({ category: ROSTER_CATEGORY, name: newName })
+      .select();
+    if (error) throw error;
+    if (data && data[0]) slot.dbRowId = data[0].id;
   }
 
   function renderRosterSlotModals() {
@@ -1114,11 +1138,9 @@
     const slot = rosterSlotsCache.find(s => s.id === id);
     if (!slot) return;
     slot.students = [...studentQueue];
-    const { error } = await db.from('saved_lists')
-      .update({ items: slot.students })
-      .eq('category', ROSTER_CATEGORY)
-      .eq('slot', id);
-    if (error) { alert('저장 실패: ' + error.message); return; }
+    try {
+      await _rosterUpsertRow(slot);
+    } catch (e) { alert('저장 실패: ' + e.message); return; }
     renderRosterSlotModals();
     closeRosterSaveModal();
   }
@@ -1140,12 +1162,11 @@
 
   async function addRosterSlot() {
     const maxId = rosterSlotsCache.reduce((max, s) => Math.max(max, s.id), 0);
-    const newId = maxId + 1;
-    const newName = `명단 ${newId}`;
-    const { error } = await db.from('saved_lists')
-      .insert({ slot: newId, category: ROSTER_CATEGORY, name: newName, items: [] });
-    if (error) { alert('슬롯 추가 실패: ' + error.message); return; }
-    rosterSlotsCache.push({ id: newId, name: newName, students: [] });
+    const newSlot = { id: maxId + 1, name: `명단 ${maxId + 1}`, students: [] };
+    try {
+      await _rosterUpsertRow(newSlot);
+    } catch (e) { alert('슬롯 추가 실패: ' + e.message); return; }
+    rosterSlotsCache.push(newSlot);
     renderRosterSlotModals();
   }
 
@@ -1153,12 +1174,10 @@
     const slot = rosterSlotsCache.find(s => s.id === id);
     const newName = prompt('슬롯 이름을 입력하세요:', slot?.name || '');
     if (!newName || !newName.trim()) return;
-    const { error } = await db.from('saved_lists')
-      .update({ name: newName.trim() })
-      .eq('category', ROSTER_CATEGORY)
-      .eq('slot', id);
-    if (error) { alert('이름 변경 실패: ' + error.message); return; }
-    if (slot) slot.name = newName.trim();
+    slot.name = newName.trim();
+    try {
+      await _rosterUpsertRow(slot);
+    } catch (e) { alert('이름 변경 실패: ' + e.message); return; }
     renderRosterSlotModals();
   }
 
@@ -1166,11 +1185,10 @@
     if (rosterSlotsCache.length <= 1) { alert('슬롯이 최소 1개는 있어야 합니다.'); return; }
     const slot = rosterSlotsCache.find(s => s.id === id);
     if (!confirm(`"${slot?.name}" 슬롯을 삭제할까요?`)) return;
-    const { error } = await db.from('saved_lists')
-      .delete()
-      .eq('category', ROSTER_CATEGORY)
-      .eq('slot', id);
-    if (error) { alert('삭제 실패: ' + error.message); return; }
+    if (slot.dbRowId) {
+      const { error } = await db.from('questions').delete().eq('id', slot.dbRowId);
+      if (error) { alert('삭제 실패: ' + error.message); return; }
+    }
     rosterSlotsCache = rosterSlotsCache.filter(s => s.id !== id);
     renderRosterSlotModals();
   }
