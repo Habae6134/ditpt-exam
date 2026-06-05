@@ -1,4 +1,4 @@
-const CACHE = 'ditpt-v4';
+const CACHE = 'ditpt-v5';
 const ASSETS = [
   '/', 
   '/index.html', 
