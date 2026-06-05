@@ -1052,7 +1052,7 @@
     const { data, error } = await db.from('questions')
       .select('id, name')
       .eq('category', ROSTER_CATEGORY);
-    if (error) { console.error('출석부 슬롯 로드 실패:', error); rosterSlotsCache = []; return; }
+    if (error) { alert('출석부 슬롯 로드 실패: ' + error.message); rosterSlotsCache = []; return; }
     if (data && data.length > 0) {
       rosterSlotsCache = data.map(row => {
         try {
@@ -1061,13 +1061,12 @@
         } catch { return null; }
       }).filter(Boolean).sort((a, b) => a.id - b.id);
     } else {
-      // 최초 접속 시 기본 슬롯 4개 생성
       const inserts = [1,2,3,4].map(i => ({
         category: ROSTER_CATEGORY,
         name: JSON.stringify({ slotId: i, slotName: `명단 ${i}`, students: [] })
       }));
       const { data: inserted, error: insertErr } = await db.from('questions').insert(inserts).select();
-      if (insertErr) { console.error('출석부 슬롯 초기화 실패:', insertErr); rosterSlotsCache = []; return; }
+      if (insertErr) { alert('출석부 슬롯 초기화 실패: ' + insertErr.message); rosterSlotsCache = []; return; }
       rosterSlotsCache = (inserted || []).map(row => {
         const p = JSON.parse(row.name);
         return { dbRowId: row.id, id: p.slotId, name: p.slotName, students: [] };
@@ -1115,7 +1114,8 @@
       </div>`).join('') + addBtn;
   }
 
-  function openRosterSaveModal() {
+  async function openRosterSaveModal() {
+    await loadRosterSlotsFromDB();
     document.getElementById('rosterSaveDesc').textContent = `현재 명단(${studentQueue.length}명)을 저장할 슬롯을 선택하세요.`;
     renderRosterSlotModals();
     document.getElementById('rosterSaveModal').classList.add('open');
@@ -1125,7 +1125,8 @@
     document.getElementById('rosterSaveModal').classList.remove('open');
   }
 
-  function openRosterLoadModal() {
+  async function openRosterLoadModal() {
+    await loadRosterSlotsFromDB();
     renderRosterSlotModals();
     document.getElementById('rosterLoadModal').classList.add('open');
   }
