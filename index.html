@@ -719,6 +719,8 @@
   let studentQueue = []; // 출석부 대기열
   let examStarted = false;
   let currentRosterSlotName = ''; // 현재 불러온 슬롯 이름
+  const ROSTER_CATEGORY = '__roster__';
+  let rosterSlotsCache = [];
 
   // ── 카테고리 선택 ──
   async function selectCategory(name, type) {
@@ -736,6 +738,7 @@
       await loadItemsFromDB(name);
       await loadSlotsFromDB(name);
     }
+    await loadRosterSlotsFromDB();
 
     currentPicks = [];
     drawHistory = [];
@@ -1044,23 +1047,24 @@
     document.getElementById('rosterViewModal').classList.remove('open');
   }
 
-  // ── 출석부 저장 슬롯 ──
-  const ROSTER_SLOT_KEY = 'rosterSlots';
-
-  function getRosterSlots() {
-    const stored = localStorage.getItem(ROSTER_SLOT_KEY);
-    if (stored) return JSON.parse(stored);
-    const defaults = [1, 2, 3, 4].map(i => ({ id: i, name: `명단 ${i}`, students: [] }));
-    localStorage.setItem(ROSTER_SLOT_KEY, JSON.stringify(defaults));
-    return defaults;
-  }
-
-  function saveRosterSlotsToStorage(slots) {
-    localStorage.setItem(ROSTER_SLOT_KEY, JSON.stringify(slots));
+  // ── 출석부 저장 슬롯 (Supabase 동기화) ──
+  async function loadRosterSlotsFromDB() {
+    const { data } = await db.from('saved_lists')
+      .select('*')
+      .eq('category', ROSTER_CATEGORY)
+      .order('slot');
+    if (data && data.length > 0) {
+      rosterSlotsCache = data.map(s => ({ id: s.slot, name: s.name, students: s.items || [] }));
+    } else {
+      const defaults = [1,2,3,4].map(i => ({ slot: i, category: ROSTER_CATEGORY, name: `명단 ${i}`, items: [] }));
+      const { error } = await db.from('saved_lists').insert(defaults);
+      if (error) { console.error('출석부 슬롯 초기화 실패:', error); }
+      rosterSlotsCache = [1,2,3,4].map(i => ({ id: i, name: `명단 ${i}`, students: [] }));
+    }
   }
 
   function renderRosterSlotModals() {
-    const slots = getRosterSlots();
+    const slots = rosterSlotsCache;
     const addBtn = `<button onclick="addRosterSlot()" style="width:100%; margin-top:8px; padding:10px; background:#f7fafc; border:1.5px dashed #cbd5e0; border-radius:8px; color:#718096; font-size:0.9rem; cursor:pointer; font-weight:bold;">+ 슬롯 추가</button>`;
 
     const iconBtn = (onclick, color, icon) =>
@@ -1068,7 +1072,7 @@
 
     document.getElementById('rosterSaveOptions').innerHTML = slots.map(s => `
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="saveRosterToSlot(${s.id}); closeRosterSaveModal()">
+        <button class="slot-option-btn" style="margin:0; flex:1;" onclick="saveRosterToSlot(${s.id})">
           <strong>${s.name}</strong>
           <span>${s.students.length > 0 ? `${s.students.length}명 저장됨` : '비어있음'}</span>
         </button>
@@ -1106,17 +1110,21 @@
     document.getElementById('rosterLoadModal').classList.remove('open');
   }
 
-  function saveRosterToSlot(id) {
-    const slots = getRosterSlots();
-    const slot = slots.find(s => s.id === id);
+  async function saveRosterToSlot(id) {
+    const slot = rosterSlotsCache.find(s => s.id === id);
     if (!slot) return;
     slot.students = [...studentQueue];
-    saveRosterSlotsToStorage(slots);
+    const { error } = await db.from('saved_lists')
+      .update({ items: slot.students })
+      .eq('category', ROSTER_CATEGORY)
+      .eq('slot', id);
+    if (error) { alert('저장 실패: ' + error.message); return; }
+    renderRosterSlotModals();
+    closeRosterSaveModal();
   }
 
   function loadRosterFromSlot(id) {
-    const slots = getRosterSlots();
-    const slot = slots.find(s => s.id === id);
+    const slot = rosterSlotsCache.find(s => s.id === id);
     if (!slot || slot.students.length === 0) return;
     if (!confirm(`"${slot.name}" (${slot.students.length}명)을 불러올까요?\n현재 명단이 교체됩니다.`)) return;
     studentQueue = [...slot.students];
@@ -1130,30 +1138,40 @@
     closeRosterLoadModal();
   }
 
-  function addRosterSlot() {
-    const slots = getRosterSlots();
-    const maxId = slots.reduce((max, s) => Math.max(max, s.id), 0);
-    slots.push({ id: maxId + 1, name: `명단 ${maxId + 1}`, students: [] });
-    saveRosterSlotsToStorage(slots);
+  async function addRosterSlot() {
+    const maxId = rosterSlotsCache.reduce((max, s) => Math.max(max, s.id), 0);
+    const newId = maxId + 1;
+    const newName = `명단 ${newId}`;
+    const { error } = await db.from('saved_lists')
+      .insert({ slot: newId, category: ROSTER_CATEGORY, name: newName, items: [] });
+    if (error) { alert('슬롯 추가 실패: ' + error.message); return; }
+    rosterSlotsCache.push({ id: newId, name: newName, students: [] });
     renderRosterSlotModals();
   }
 
-  function renameRosterSlot(id) {
-    const slots = getRosterSlots();
-    const slot = slots.find(s => s.id === id);
+  async function renameRosterSlot(id) {
+    const slot = rosterSlotsCache.find(s => s.id === id);
     const newName = prompt('슬롯 이름을 입력하세요:', slot?.name || '');
     if (!newName || !newName.trim()) return;
-    slot.name = newName.trim();
-    saveRosterSlotsToStorage(slots);
+    const { error } = await db.from('saved_lists')
+      .update({ name: newName.trim() })
+      .eq('category', ROSTER_CATEGORY)
+      .eq('slot', id);
+    if (error) { alert('이름 변경 실패: ' + error.message); return; }
+    if (slot) slot.name = newName.trim();
     renderRosterSlotModals();
   }
 
-  function deleteRosterSlot(id) {
-    const slots = getRosterSlots();
-    if (slots.length <= 1) { alert('슬롯이 최소 1개는 있어야 합니다.'); return; }
-    const slot = slots.find(s => s.id === id);
+  async function deleteRosterSlot(id) {
+    if (rosterSlotsCache.length <= 1) { alert('슬롯이 최소 1개는 있어야 합니다.'); return; }
+    const slot = rosterSlotsCache.find(s => s.id === id);
     if (!confirm(`"${slot?.name}" 슬롯을 삭제할까요?`)) return;
-    saveRosterSlotsToStorage(slots.filter(s => s.id !== id));
+    const { error } = await db.from('saved_lists')
+      .delete()
+      .eq('category', ROSTER_CATEGORY)
+      .eq('slot', id);
+    if (error) { alert('삭제 실패: ' + error.message); return; }
+    rosterSlotsCache = rosterSlotsCache.filter(s => s.id !== id);
     renderRosterSlotModals();
   }
 
