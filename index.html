@@ -1362,6 +1362,44 @@
     return arr;
   }
 
+  // ── 출제 횟수 균등 분배를 위한 풀 필터링 함수 ──
+  function filterFairPool(pool, needed) {
+    if (pool.length === 0) return pool;
+
+    const counts = {};
+    pool.forEach(item => {
+      counts[item] = 0;
+    });
+
+    drawHistory.forEach(h => {
+      if (h.picks && Array.isArray(h.picks)) {
+        h.picks.forEach(p => {
+          if (counts[p] !== undefined) {
+            counts[p]++;
+          }
+        });
+      }
+    });
+
+    let minCount = Infinity;
+    pool.forEach(item => {
+      if (counts[item] < minCount) {
+        minCount = counts[item];
+      }
+    });
+
+    let fairPool = pool.filter(item => counts[item] === minCount);
+    let currentLevel = minCount;
+
+    while (fairPool.length < needed && fairPool.length < pool.length) {
+      currentLevel++;
+      const nextLevelItems = pool.filter(item => counts[item] === currentLevel);
+      fairPool = fairPool.concat(nextLevelItems);
+    }
+
+    return fairPool;
+  }
+
   // ── 뽑기 ──
   function draw() {
     const { count } = getSettings();
@@ -1387,8 +1425,12 @@
       return;
     }
 
+    // 전체 역사 대비 출제 횟수가 적은 항목을 우선 배치하여 균등 분배 보장
+    const needed = count - currentPicks.length;
+    const fairPool = filterFairPool(pool, needed);
+
     // 풀을 무작위로 섞고 안전한 난수로 선택하여 무작위성 극대화
-    const shuffledPool = shuffleArray(pool);
+    const shuffledPool = shuffleArray(fairPool);
     const picked = shuffledPool[Math.floor(getSecureRandom() * shuffledPool.length)];
     currentPicks.push(picked);
     renderSlots();
@@ -1411,8 +1453,11 @@
     }
     if (pool.length === 0) { alert('다시 뽑을 수 있는 항목이 없습니다.'); return; }
 
+    // 전체 역사 대비 출제 횟수가 적은 항목을 우선 배치하여 균등 분배 보장
+    const fairPool = filterFairPool(pool, 1);
+
     // 풀을 무작위로 섞고 안전한 난수로 선택하여 무작위성 극대화
-    const shuffledPool = shuffleArray(pool);
+    const shuffledPool = shuffleArray(fairPool);
     const picked = shuffledPool[Math.floor(getSecureRandom() * shuffledPool.length)];
     currentPicks[index] = picked;
     renderSlots();
