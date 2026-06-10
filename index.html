@@ -711,6 +711,7 @@
   }
 
   let currentPicks = [];
+  let slotSections = [];
   let drawHistory = [];
   let selectedCategory = '';
   let categoryType = 'number';
@@ -741,6 +742,7 @@
     await loadRosterSlotsFromDB();
 
     currentPicks = [];
+    slotSections = [];
     drawHistory = [];
     studentQueue = [];
     clearStudentName();
@@ -1271,6 +1273,7 @@
     if (currentPicks.length > 0) {
       drawHistory.push({ label, picks: [...currentPicks], timestamp: getFormattedTime() });
       currentPicks = [];
+      slotSections = [];
     }
     examStarted = false;
     document.getElementById('examPanel').style.display = 'none';
@@ -1306,6 +1309,7 @@
     const pending = studentQueue.shift();
     studentQueue.push(pending);
     currentPicks = [];
+    slotSections = [];
     renderSlots();
     if (studentQueue.length > 0) {
       document.getElementById('studentNameNumber').value = studentQueue[0];
@@ -1325,6 +1329,7 @@
   function advanceStudent() {
     if (studentQueue.length > 0) studentQueue.shift();
     currentPicks = [];
+    slotSections = [];
     renderSlots();
     document.getElementById('nextBtn').style.display = 'none';
     document.getElementById('notice').textContent = '';
@@ -1360,6 +1365,26 @@
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+  }
+
+  // ── 구간 분할 헬퍼 함수 ──
+  function ensureSlotSections() {
+    const { count } = getSettings();
+    if (!slotSections || slotSections.length !== count) {
+      const arr = [];
+      for (let i = 0; i < count; i++) {
+        arr.push(i);
+      }
+      slotSections = shuffleArray(arr);
+      saveStateToLocalStorage();
+    }
+  }
+
+  function getRangeForIndex(sectionIndex, totalCount, drawCount) {
+    const rangeSize = totalCount / drawCount;
+    const start = Math.round(sectionIndex * rangeSize) + 1;
+    const end = Math.round((sectionIndex + 1) * rangeSize);
+    return { start, end };
   }
 
   // ── 출제 횟수 균등 분배를 위한 풀 필터링 함수 ──
@@ -1405,11 +1430,14 @@
     const { count } = getSettings();
     if (currentPicks.length >= count) return;
 
-    let pool;
+    ensureSlotSections();
+    const sectionIndex = slotSections[currentPicks.length];
+
+    let pool = [];
     if (categoryType === 'number') {
       const { max } = getSettings();
-      pool = [];
-      for (let n = 1; n <= max; n++) {
+      const { start, end } = getRangeForIndex(sectionIndex, max, count);
+      for (let n = start; n <= end; n++) {
         if (!currentPicks.includes(n)) pool.push(n);
       }
     } else {
@@ -1417,7 +1445,9 @@
         document.getElementById('notice').textContent = '먼저 실기문제 목록을 추가해주세요.';
         return;
       }
-      pool = textItems.map(i => i.name).filter(n => !currentPicks.includes(n));
+      const { start, end } = getRangeForIndex(sectionIndex, textItems.length, count);
+      const sectionItems = textItems.slice(start - 1, end);
+      pool = sectionItems.map(i => i.name).filter(n => !currentPicks.includes(n));
     }
 
     if (pool.length === 0) {
@@ -1425,12 +1455,8 @@
       return;
     }
 
-    // 전체 역사 대비 출제 횟수가 적은 항목을 우선 배치하여 균등 분배 보장
-    const needed = count - currentPicks.length;
-    const fairPool = filterFairPool(pool, needed);
-
     // 풀을 무작위로 섞고 안전한 난수로 선택하여 무작위성 극대화
-    const shuffledPool = shuffleArray(fairPool);
+    const shuffledPool = shuffleArray(pool);
     const picked = shuffledPool[Math.floor(getSecureRandom() * shuffledPool.length)];
     currentPicks.push(picked);
     renderSlots();
@@ -1440,24 +1466,29 @@
   function redrawSlot(index) {
     if (currentPicks[index] === undefined) return;
     const otherPicks = currentPicks.filter((_, i) => i !== index);
+
+    ensureSlotSections();
+    const sectionIndex = slotSections[index];
+    const { count } = getSettings();
+
     let pool;
     if (categoryType === 'number') {
       const { max } = getSettings();
+      const { start, end } = getRangeForIndex(sectionIndex, max, count);
       pool = [];
-      for (let n = 1; n <= max; n++) {
+      for (let n = start; n <= end; n++) {
         if (!otherPicks.includes(n)) pool.push(n);
       }
     } else {
       if (textItems.length === 0) return;
-      pool = textItems.map(i => i.name).filter(n => !otherPicks.includes(n));
+      const { start, end } = getRangeForIndex(sectionIndex, textItems.length, count);
+      const sectionItems = textItems.slice(start - 1, end);
+      pool = sectionItems.map(i => i.name).filter(n => !otherPicks.includes(n));
     }
     if (pool.length === 0) { alert('다시 뽑을 수 있는 항목이 없습니다.'); return; }
 
-    // 전체 역사 대비 출제 횟수가 적은 항목을 우선 배치하여 균등 분배 보장
-    const fairPool = filterFairPool(pool, 1);
-
     // 풀을 무작위로 섞고 안전한 난수로 선택하여 무작위성 극대화
-    const shuffledPool = shuffleArray(fairPool);
+    const shuffledPool = shuffleArray(pool);
     const picked = shuffledPool[Math.floor(getSecureRandom() * shuffledPool.length)];
     currentPicks[index] = picked;
     renderSlots();
@@ -1545,6 +1576,7 @@
     }
 
     currentPicks = [];
+    slotSections = [];
     document.getElementById('nextBtn').style.display = 'none';
     document.getElementById('notice').textContent = '';
     document.getElementById('currentStudentLabel').textContent = '현재 학생: —';
@@ -1811,6 +1843,7 @@
     try {
       localStorage.setItem(`ditpt_history_${selectedCategory}`, JSON.stringify(drawHistory || []));
       localStorage.setItem(`ditpt_queue_${selectedCategory}`, JSON.stringify(studentQueue || []));
+      localStorage.setItem(`ditpt_slots_${selectedCategory}`, JSON.stringify(slotSections || []));
       console.log(`[백업] 로컬스토리지에 상태 백업 완료. (과목: ${selectedCategory})`);
     } catch (e) {
       console.error("[백업] 로컬스토리지 백업 실패:", e);
@@ -1822,6 +1855,7 @@
     try {
       const savedHistory = localStorage.getItem(`ditpt_history_${selectedCategory}`);
       const savedQueue = localStorage.getItem(`ditpt_queue_${selectedCategory}`);
+      const savedSlots = localStorage.getItem(`ditpt_slots_${selectedCategory}`);
       
       if (savedHistory) {
         drawHistory = JSON.parse(savedHistory);
@@ -1840,6 +1874,11 @@
           if (stText) stText.value = studentQueue[0];
         }
       }
+
+      if (savedSlots) {
+        slotSections = JSON.parse(savedSlots);
+        console.log(`[복구] slotSections 복구 완료. (${slotSections.length}개)`);
+      }
       
       updateRosterStatus();
       renderHistory();
@@ -1853,6 +1892,7 @@
     try {
       localStorage.removeItem(`ditpt_history_${selectedCategory}`);
       localStorage.removeItem(`ditpt_queue_${selectedCategory}`);
+      localStorage.removeItem(`ditpt_slots_${selectedCategory}`);
       console.log(`[백업 초기화] 로컬스토리지에서 이력 삭제 완료. (과목: ${selectedCategory})`);
     } catch (e) {
       console.error("[백업 초기화] 실패:", e);
@@ -1863,6 +1903,7 @@
     if (!confirm('모든 기록을 초기화할까요?')) return;
     examStarted = false;
     currentPicks = [];
+    slotSections = [];
     drawHistory = [];
     studentQueue = [];
     document.getElementById('examPanel').style.display = 'none';
@@ -1894,6 +1935,7 @@
         // 과목 선택 화면으로 돌아갈 때 기록 및 진행 중이던 상태 안전하게 초기화
         drawHistory = [];
         currentPicks = [];
+        slotSections = [];
         studentQueue = [];
         
         // 과목 선택으로 아웃될 때 백업 비우기
@@ -1976,8 +2018,8 @@
     document.getElementById('listToggleIcon').textContent = itemListOpen ? '▲ 닫기' : '▼ 열기';
   }
 
-  document.getElementById('drawCount').addEventListener('input', () => { currentPicks = []; renderSlots(); });
-  document.getElementById('drawCountText').addEventListener('input', () => { currentPicks = []; renderSlots(); });
+  document.getElementById('drawCount').addEventListener('input', () => { currentPicks = []; slotSections = []; renderSlots(); });
+  document.getElementById('drawCountText').addEventListener('input', () => { currentPicks = []; slotSections = []; renderSlots(); });
 
   // file:/// 로컬 실행 시 서비스 워커 오류 방지용 안전 검증 추가
   if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
